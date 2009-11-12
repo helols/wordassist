@@ -31,7 +31,7 @@
 		<echo>${release.current.version} -> ${release.next.version}</echo>
 		<antcall target="3_merge_and_compress_all"></antcall>
 		<antcall target="4_run_to_release"></antcall>
-		<antcall target="5_commit_version"></antcall>
+		<!--<antcall target="5_commit_version"></antcall>-->
   </target>
   
   <target name="#_make_release_patch" description="make release patch version up">
@@ -40,12 +40,12 @@
 		<echo>${release.current.version} -> ${release.next.version}</echo>
 		<antcall target="3_merge_and_compress_all"></antcall>
 		<antcall target="4_run_to_release"></antcall>
-		<antcall target="5_commit_version"></antcall>
+		<!--<antcall target="5_commit_version"></antcall>-->
   </target>
   
 	<target name="#_make_snapshot" description="make snapshot">
 		<antcall target="1_checkout"></antcall>
-		<antcall target="3_merge_and_compress.all"></antcall>
+		<antcall target="3_merge_and_compress_all"></antcall>
 		<antcall target="4_run_to_snapshot"></antcall>
 	</target>
 	
@@ -55,10 +55,10 @@
 	    <svn username="${svnant.repository.user}" password="${svnant.repository.passwd}">
 	      <checkout url="${svnant.release.path}/daumeditor" revision="HEAD" destPath="${workingcopy}" />
 	    </svn>
-		<echo>Update build.properties ...</echo>
-		<svn username="${svnant.repository.user}" password="${svnant.repository.passwd}">
-	      <revert file="build.properties" />
-	    </svn>
+		<!--<echo>Update build.properties ...${svnant.repository.user} / ${svnant.repository.passwd}</echo>-->
+		<!--<svn username="${svnant.repository.user}" password="${svnant.repository.passwd}">-->
+	      <!--<revert file="build.properties" />-->
+	    <!--</svn>-->
 	</target>
 
 	<target name="3_merge_and_compress_all" >
