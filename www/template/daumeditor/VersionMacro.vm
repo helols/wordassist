@@ -1,0 +1,28 @@
+	
+#macro(loadResource $editorMode)
+	#if($request.getParameter("mode"))
+		#set($editorMode = $request.getParameter("mode"))
+	#end
+	#if($request.getParameter("ver"))
+		#set($txVersion = $request.getParameter("ver"))
+	#end
+	
+	#set($txHost = "")
+	#set($txPath = "")
+	#set($txService = "sample") 
+	#set($projectName = "sample")
+
+	#if($!editorMode == "SNAPSHOT")
+		#set($txPath = "/snapshot/")
+	#elseif($!editorMode == "SOURCE")
+		#set($txPath = "/daumeditor/")
+	#else ## RELEASE
+		#set($txPath = "/releases/$txVersion/")
+	#end
+	
+	<link rel="stylesheet" href="${txHost}${txPath}css/editor.css" type="text/css"  charset="utf-8"/>
+	<link rel="stylesheet" href="${txHost}${txPath}css/contents4view.css" type="text/css"  charset="utf-8"/>
+	<script src="${txHost}${txPath}js/editor.js" type="text/javascript" charset="utf-8"></script>
+	<script src="${txHost}${txPath}js/editor_${projectName}.js" type="text/javascript" charset="utf-8"></script>
+	
+#end

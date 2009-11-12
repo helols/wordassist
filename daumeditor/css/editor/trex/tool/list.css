@@ -1,0 +1,27 @@
+/* ordered */
+.tx-ordered a.tx-icon {background-position:-105px -30px;}
+/* unordered */
+.tx-unordered a.tx-icon {background-position:-124px -30px;}
+
+/* styledlist list */
+.tx-styledlist a.tx-icon {width:21px;}
+.tx-styledlist a.tx-icon {background-position:-105px -30px;}
+
+.tx-styledlist a.tx-styledlist-1 {background-position:-125px -29px;}
+.tx-styledlist a.tx-styledlist-2 {background-position:-25px -49px;}
+.tx-styledlist a.tx-styledlist-3 {background-position:-105px -29px;}
+.tx-styledlist a.tx-styledlist-4 {background-position:-45px -49px;}
+.tx-styledlist a.tx-styledlist-5 {background-position:-65px -49px;}
+
+.tx-styledlist-menu { width:27px;}
+.tx-styledlist-menu li.tx-menu-list-item a {
+	background-image:url(/daumeditor/images/icon/tx_icon.gif?rv=1.0.9);background-repeat:no-repeat;
+	display:block;width:25px;height:21px;background-repeat:no-repeat;font-size:0px;line-height:0px;text-indent:-1000px;overflow:hidden;
+	padding:0;
+}
+.tx-styledlist-menu li.tx-menu-list-item a.tx-styledlist-1 {background-position:-122px -29px;}
+.tx-styledlist-menu li.tx-menu-list-item a.tx-styledlist-2 {background-position:-22px -49px;}
+.tx-styledlist-menu li.tx-menu-list-item a.tx-styledlist-3 {background-position:-102px -29px;}
+.tx-styledlist-menu li.tx-menu-list-item a.tx-styledlist-4 {background-position:-42px -49px;}
+.tx-styledlist-menu li.tx-menu-list-item a.tx-styledlist-5 {background-position:-62px -49px;}
+

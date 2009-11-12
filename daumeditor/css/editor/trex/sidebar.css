@@ -1,0 +1,75 @@
+
+/* sidebar */
+
+.tx-sidebar {clear:both; background:#f8f8f8; border:1px solid; border-color:#d5d5d5 #cdcdcd #dedede; height:27px;}
+.tx-sidebar-boundary {background:#f8f8f8;border:1px solid #fff; padding:0 5px 0 7px;height:25px;}
+
+.tx-toolbar .tx-bar li {position:relative;z-index:6;}
+
+.tx-sidebar .tx-bar-left { float:left; margin:0 3px 0 0;}
+.tx-sidebar .tx-bar-right { float:right; margin:0; }
+.tx-sidebar .tx-bar-empty { clear:left; margin:0; }
+
+.tx-sidebar .tx-list { float:left; }
+.tx-sidebar .tx-bar-left { padding:0 5px 0 0; background:transparent url(/daumeditor/images/icon/midbar01.gif?rv=1.0.1) no-repeat right 2px; }
+.tx-sidebar .tx-list-first, .tx-sidebar .tx-list-last {background-image:none !important;}
+.tx-sidebar li.tx-extra { padding:2px 2px 0 0; }
+
+.tx-sidebar .tx-disable a,
+.tx-sidebar ul.tx-disable { cursor:default; filter:alpha(opacity=30); opacity:0.3; }
+	
+.tx-nav-attach .tx-list { padding:0 14px 0 0; }
+.tx-nav-search .tx-list { padding:0 9px 0 4px; }
+.tx-nav-opt .tx-list { }
+
+/** Search title **/
+.tx-searcher-title { width:43px; height:25px; margin-left:3px;  background-position:0 -40px; }
+.tx-searcher-title {
+	background-image: url(/daumeditor/images/icon/tx_text.gif?rv=1.0.6);
+	background-repeat: no-repeat;
+	font-size: 0px;
+	line-height: 0px;
+	text-indent: -1000px;
+	overflow: hidden;
+	display: block;
+}
+
+/* attach, search button */
+.tx-image a,
+.tx-movie a,
+.tx-movie-small a,
+.tx-pie a,
+.tx-pie-text a,
+.tx-file a,
+.tx-map a,
+.tx-map-small a,
+.tx-poll a,
+.tx-bgm a,
+.tx-bgm-text a,
+.tx-bgm-mail a,
+.tx-bgm-mail-text a,
+.tx-auction a,
+.tx-phone a,
+.tx-slideshow a,
+.tx-jukebox a,
+.tx-formula a,
+.tx-stockchart a,
+.tx-media a,
+.tx-cinema a,
+.tx-music a,
+.tx-people a,
+.tx-play a,
+.tx-restaurant a,
+.tx-shopping a,
+.tx-travel a,
+.tx-tv a,
+.tx-book a
+{
+	background-image: url(/daumeditor/images/icon/tx_text.gif?rv=1.0.6);
+	background-repeat: no-repeat;
+	font-size: 0px;
+	line-height: 0px;
+	text-indent: -1000px;
+	overflow: hidden;
+	display: block;
+}

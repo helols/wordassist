@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<project name="trex_build_snapshot">
+	<!-- merge & minify css -->
+	<target name="make_snapshot_dir" >
+		<echo message="make snapshot directory" />
+		<delete dir="${snapshot.dir}"/>
+		<mkdir dir="${snapshot.dir}" />
+		<copy encoding="UTF-8" 
+			todir="${snapshot.dir}"
+			overwrite="true">
+			<fileset dir="${dist.dir}" />
+   		</copy>
+	</target>
+	
+	<target name="replace_snapshot_dir">
+		<echo message="replace snapshot dir" />
+		<replaceregexp match="\/daumeditor\/" replace="../" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${snapshot.dir}/css">
+		    	<include name="*.css"/>
+		   </fileset> 
+		</replaceregexp>
+	</target>
+	
+</project>

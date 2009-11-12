@@ -1,0 +1,23 @@
+/* link */
+.tx-link a.tx-icon {background-position:-26px -70px;}
+
+.tx-link-menu { width:238px;}
+.tx-link-menu div.tx-menu-inner { padding:10px 10px 0px; color:#666; font-size:11px; font-family:'돋움',dotum; letter-spacing:-1; }
+.tx-link-menu dt { text-align:center; font-weight:normal; padding-bottom: 11px; }
+.tx-link-menu dd { text-align:center; padding:0px; }
+.tx-link-menu input.tx-text-input { width:216px; height:15px; font-size: 11px; font-family:'돋움',dotum; color:#666; border:1px solid #cacaca; padding:3px 2px 2px; margin-bottom: 5px; }
+* html .tx-link-menu p input { height:20px;  }
+.tx-link-menu dd.tx-rp { text-align:left; padding:0px; }
+.tx-link-menu dd.tx-rp span { margin-right: 20px; }
+.tx-link-menu dd.tx-rp input { margin: 0px 1px 0px 0px; vertical-align: middle;}
+.tx-link-menu dd.tx-rp span.tx-text  { margin-right: 0px; position: relative;}
+.tx-link-menu dd.tx-rp span.tx-first  { margin-right: 20px;}
+
+.tx-hr hr {display:block;}
+.tx-link-menu hr { border:1px solid #eaeaea; overflow:visible; margin-bottom:6px;}
+*+html body .tx-link-menu  hr { margin-bottom:0px; }
+*html .tx-link-menu  hr { margin-bottom:0px; }
+
+.tx-link-menu img { cursor:pointer; margin:0 4px 0 0; }
+*+html body .tx-link-menu dd img { margin: 0px 4px 5px 0px; }
+*html .tx-link-menu dd img { margin: 0px 4px 5px 0px; }

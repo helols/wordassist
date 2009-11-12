@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<!-- Sample build file used to retrieve svnant's sources -->
+<project name="trex_build_opensource" basedir="./" >
+  
+  <!--  all properties are in build.properties -->
+  <property file="build.properties" />
+  <property file="account.properties" />
+  <property name="workingcopy" value="workingcopy"  />
+	
+  <property description="Files for parsing etc." name="BUILD_DIR" value="build" />	
+  <property description="Rhino JS Engine" name="JAR" value="${lib.dir}/ant/js.jar" />
+  <property description="YUI compressor" name="COMPRESSOR" value="${lib.dir}/yuicompressor-2.4.2.jar" />
+  	
+  <!-- path to the svnant libraries. Usually they will be located in ANT_HOME/lib -->
+  <path id="svnant.classpath">
+    <fileset dir="${lib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+  <typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="svnant.classpath" />
+
+  <tstamp/>
+ 
+  <target name="cleanWorkingcopy">
+    <delete dir="${workingcopy}"/>
+  </target>
+  
+  <target name="#_make_release_minor" description="make release minor version up">
+		<antcall target="1_checkout"></antcall>
+		<antcall target="2_up_minor_version"></antcall>
+		<echo>${release.current.version} -> ${release.next.version}</echo>
+		<antcall target="3_merge_and_compress_all"></antcall>
+		<antcall target="4_run_to_release"></antcall>
+		<antcall target="5_commit_version"></antcall>
+  </target>
+  
+  <target name="#_make_release_patch" description="make release patch version up">
+		<antcall target="1_checkout"></antcall>
+		<antcall target="2_up_patch_version"></antcall>
+		<echo>${release.current.version} -> ${release.next.version}</echo>
+		<antcall target="3_merge_and_compress_all"></antcall>
+		<antcall target="4_run_to_release"></antcall>
+		<antcall target="5_commit_version"></antcall>
+  </target>
+  
+	<target name="#_make_snapshot" description="make snapshot">
+		<antcall target="1_checkout"></antcall>
+		<antcall target="3_merge_and_compress.all"></antcall>
+		<antcall target="4_run_to_snapshot"></antcall>
+	</target>
+	
+	 <target name="1_checkout" depends="cleanWorkingcopy">
+	 	<echo>Checkout ...</echo>
+	 	<mkdir dir="${workingcopy}"></mkdir>
+	    <svn username="${svnant.repository.user}" password="${svnant.repository.passwd}">
+	      <checkout url="${svnant.release.path}/daumeditor" revision="HEAD" destPath="${workingcopy}" />
+	    </svn>
+		<echo>Update build.properties ...</echo>
+		<svn username="${svnant.repository.user}" password="${svnant.repository.passwd}">
+	      <revert file="build.properties" />
+	    </svn>
+	</target>
+
+	<target name="3_merge_and_compress_all" >
+		<delete dir="${dist.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+		<antcall target="build_js"></antcall>
+	  	<antcall target="build_html"></antcall>
+		<antcall target="build_css"></antcall>
+	 </target>
+	
+	<target name="4_run_to_release" >
+		<ant antfile="build_release.xml" target="copy_images" />
+		<ant antfile="build_release.xml" target="make_release_dir" />
+		<ant antfile="build_release.xml" target="gen_demo_html" />
+		<ant antfile="build_release.xml" target="replace_release_dir" />
+		<ant antfile="build_release.xml" target="compress_release" />
+	</target>
+	
+	<target name="4_run_to_snapshot" >
+		<ant antfile="build_release.xml" target="copy_images" />
+		<ant antfile="build_snapshot.xml" target="make_snapshot_dir" />
+		<ant antfile="build_snapshot.xml" target="replace_snapshot_dir" />
+	</target>
+	
+	<target name="2_up_minor_version">
+		<echo>Up minor Version Number ...</echo>
+		<java jar="${JAR}" fork="true" >
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<arg value="pwe/up.versionnumber.js" />
+			<arg value="build.properties" />
+			<arg value="minor" />
+		</java>
+		<property file="build.properties" />
+	</target>
+	
+	<target name="2_up_patch_version">
+		<echo>Up patch(release) Version Number ...</echo>
+		<java jar="${JAR}" fork="true" >
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<arg value="pwe/up.versionnumber.js" />
+			<arg value="build.properties" />
+			<arg value="release" />
+		</java>
+		<property file="build.properties" />
+	</target>
+	
+	<target name="5_commit_version">
+		<svn username="${svnant.repository.user}" password="${svnant.repository.passwd}">
+		  <commit file="build.properties" message="VER-${release.next.version} build &amp; deploy"  />	
+	    </svn>
+	</target>
+	
+
+<!-- ===================================== JAVASCRIPT ===================================== -->
+	<target name="build_js">
+		<ant antfile="build_html.xml" target="replace_pages_dir" />
+		<ant antfile="build_js.xml" target="minify_editor_js" />
+		<ant antfile="build_js.xml" target="minify_popup_js" />
+		<ant antfile="build_js.xml" target="minify_projects_js" />
+		<ant antfile="build_js.xml" target="minify_orig_all_js" />
+		<echo message="Build Js Completed..." />
+    </target>
+		
+<!-- ===================================== HTML ===================================== -->
+	<target name="build_html" > 
+		<ant antfile="build_html.xml" target="copy_notpopup_html" />
+		<ant antfile="build_html.xml" target="copy_popup_html" />
+		<echo message="Build Html Completed..." />
+	</target>
+	
+<!-- ===================================== CSS ===================================== -->
+	<target name="build_css" > 
+		<ant antfile="build_css.xml" target="merge_editor_css" />
+		<ant antfile="build_css.xml" target="merge_contents4xxx_css" />
+		<echo message="Build Css Completed..." />
+	</target>	
+
+</project>
+

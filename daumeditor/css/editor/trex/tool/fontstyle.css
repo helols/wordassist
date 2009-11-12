@@ -1,0 +1,53 @@
+/* fontfamily */
+.tx-fontfamily a:hover { text-decoration:none }
+.tx-fontfamily-menu { width:173px;}
+.tx-toolbar-basic .tx-fontfamily-menu .tx-gulim { font-family:'굴림',Gulim,AppleGothic,sans-serif; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-batang { font-family:'바탕',Batang; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-dotum { font-family:'돋움',Dotum; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-gungseo { font-family:'궁서',GungSuh; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-arial {	font-family:Arial; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-verdana { font-family:Verdana; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-gulim .tx-txt{ font-family:'굴림',Gulim,AppleGothic,sans-serif; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-batang .tx-txt{ font-family:'바탕',Batang; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-dotum .tx-txt{ font-family:'돋움',Dotum; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-gungseo .tx-txt{ font-family:'궁서',GungSuh; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-arial .tx-txt{	font-family:Arial; }
+.tx-toolbar-basic .tx-fontfamily-menu .tx-verdana .tx-txt{ font-family:Verdana; }
+.tx-fontfamily-menu .tx-menu-list .tx-menu-list-item a:hover { background-color:#EEEEEE}
+.tx-fontfamily-menu .tx-menu-list .tx-menu-list-item a { display:block;width:153px;height:18px; }
+
+/* fontsize */
+.tx-fontsize {padding-right:0;}
+.tx-fontsize a:hover { text-decoration:none;font-family:'돋움',Dotum}
+.tx-fontsize-menu { width:322px; }
+.tx-fontsize-menu li.tx-menu-list-item a { line-height:100%; width:auto; height:auto;}
+.tx-toolbar-basic .tx-fontsize-menu a.tx-8pt { font-size:8pt; }
+.tx-toolbar-basic .tx-fontsize-menu a.tx-9pt { font-size:9pt; }
+.tx-toolbar-basic .tx-fontsize-menu a.tx-10pt { font-size:10pt; }
+.tx-toolbar-basic .tx-fontsize-menu a.tx-11pt { font-size:11pt; }
+.tx-toolbar-basic .tx-fontsize-menu a.tx-12pt { font-size:12pt; }
+.tx-toolbar-basic .tx-fontsize-menu a.tx-14pt { font-size:14pt; }
+.tx-toolbar-basic .tx-fontsize-menu a.tx-18pt { font-size:18pt; }
+.tx-toolbar-basic .tx-fontsize-menu a.tx-24pt { font-size:24pt; }
+.tx-toolbar-basic .tx-fontsize-menu a.tx-36pt { font-size:36pt; }
+
+
+/* bold */
+.tx-bold a.tx-icon {background-position:-24px -9px;}
+
+/* underline */
+.tx-underline a.tx-icon {background-position:-45px -9px;}
+
+/* italic */
+.tx-italic a.tx-icon {background-position:-65px -9px;}
+
+/* strike */
+.tx-strike a.tx-icon {background-position:-85px -9px;}
+
+/* forecolor */
+.tx-forecolor a.tx-icon {background-position:-105px -9px;}
+.tx-forecolor-menu {width:195px;}
+
+/* backcolor */
+.tx-backcolor a.tx-icon {background-position:-124px -10px;}
+

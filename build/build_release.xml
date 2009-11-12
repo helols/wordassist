@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<project name="trex_build_release">
+	<!-- merge & minify css -->
+	<target name="make_release_dir" >
+		<echo message="make release directory" />
+		<delete dir="${release.dir}/${release.next.version}"/>
+		<mkdir dir="${release.dir}/${release.next.version}" />
+		<copy encoding="UTF-8" 
+			todir="${release.dir}/${release.next.version}"
+			overwrite="true">
+			<fileset dir="${dist.dir}" />
+   		</copy>
+		<echo message="make release source directory" />
+		<mkdir dir="${release.dir}/${release.next.version}/_js_source" />
+		<copy encoding="UTF-8" 
+			todir="${release.dir}/${release.next.version}/_js_source"
+			overwrite="true">
+			<fileset dir="${workingcopy}/js">
+	    		<include name="**/*.js"/>
+	    	</fileset>
+   		</copy>
+		<echo message="get release documents" />
+		<copy encoding="UTF-8" 
+			todir="${release.dir}/${release.next.version}"
+			overwrite="true">
+			<fileset dir="${release.dir}">
+	    		<include name="*.txt"/>
+	    	</fileset>
+   		</copy>
+	</target>
+	
+	<target name="gen_demo_html" >
+		<echo message="make demo html" />
+		<get src="http://${webapps.host}/${webapps.name}/daumeditor.html?mode=RELEASE&amp;ver=${release.next.version}" dest="${release.dir}/${release.next.version}/daumeditor.html"/>
+		<echo message="make source demo html" />
+		<get src="http://${webapps.host}/${webapps.name}/daumeditor.html?mode=SOURCE" dest="${release.dir}/${release.next.version}/_daumeditor_source.html"/>
+	</target>
+	
+	<target name="replace_release_dir">
+		<echo message="replace release dir" />
+		<replaceregexp match="\/releases\/[\d\.]*\/" replace="" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${release.dir}/${release.next.version}" includes="daumeditor.html"/>
+		</replaceregexp>
+		<replaceregexp match="\/daumeditor\/js\/" replace="_js_source/" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${release.dir}/${release.next.version}" includes="_daumeditor_source.html"/>
+		</replaceregexp>
+		<replaceregexp match="\/daumeditor\/" replace="" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${release.dir}/${release.next.version}" includes="_daumeditor_source.html"/>
+		</replaceregexp>
+		<replaceregexp match="\/daumeditor\/images\/" replace="images\/" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${release.dir}/${release.next.version}">
+		    	<include name="daumeditor.html"/>
+		    	<include name="_daumeditor_source.html"/>
+		   </fileset> 
+		</replaceregexp>
+		<replaceregexp match="\/daumeditor\/images\/" replace="../images\/" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${release.dir}/${release.next.version}">
+		    	<include name="css/*.css"/>
+		    	<include name="js/*.js"/>
+		    	<include name="_js_source/*.js"/>
+		   </fileset> 
+		</replaceregexp>
+		<replaceregexp match="\/daumeditor\/js\/" replace="_js_source/" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${release.dir}/${release.next.version}">
+		    	<include name="_js_source/*.js"/>
+		   </fileset> 
+		</replaceregexp>
+		<replaceregexp match="\/daumeditor\/images\/" replace="../../images\/" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${release.dir}/${release.next.version}">
+		    	<include name="css/*/*.css"/>
+		    	<include name="js/*/*.js"/>
+		    	<include name="_js_source/*/*.js"/>
+		   </fileset> 
+		</replaceregexp>
+		<replaceregexp match="\/daumeditor\/images\/" replace="../../../images\/" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${release.dir}/${release.next.version}/css">
+		    	<include name="_js_source/*/*/*.js"/>
+		   </fileset> 
+		</replaceregexp>
+	</target>
+
+	<target name="compress_release">
+		<zip destfile="${release.dir}/daumeditor-${release.next.version}.zip">
+	    	<fileset dir="${release.dir}/${release.next.version}">
+	    		<exclude name="*.zip"/>
+	    	</fileset>
+	  	</zip>
+	</target>
+	
+	<target name="copy_images"> 
+		<echo message="Copy images" />
+		<copy 
+			todir="${dist.dir}/images" overwrite="true">
+			<fileset dir="${workingcopy}/images">
+				<exclude name="**/*.db"/>
+				<include name="**/*" />
+			</fileset>
+   		</copy>
+	</target>	
+	
+</project>

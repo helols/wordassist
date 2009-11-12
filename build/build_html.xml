@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<project name="trex_build_html">
+	<!-- html -->
+	<target name="copy_notpopup_html"> 
+		<echo message="Copy not popup pages" />
+		<copy encoding="UTF-8" 
+			todir="${dist.dir}/pages" overwrite="true">
+			<fileset dir="${workingcopy}/pages">
+				<include name="wysiwyg_html.html" />
+				<include name="wysiwyg_xhtml.html" />
+				<include name="**/*.html" />
+				<exclude name="trex/*" />
+			</fileset>
+   		</copy>
+	</target>	
+	
+	<target name="copy_popup_html"> 	
+		<echo message="Copy popup pages" />
+		<mkdir dir="${dist.dir}/pages/popup"/>
+		<copy encoding="UTF-8" 
+			todir="${dist.dir}/pages/popup" overwrite="true">
+			<fileset dir="${workingcopy}/pages/trex">
+				<include name="*.html" />
+			</fileset>
+   		</copy>
+	</target>
+
+	<target name="replace_pages_dir">
+		<replaceregexp match="pages\/trex\/" replace="pages/popup/" flags="g" byline="true" encoding="utf-8">
+			<fileset dir="${workingcopy}/js">
+				<include name="**/*.js" />
+			</fileset>
+		</replaceregexp>
+		
+		<replaceregexp match="pages\/masala\/" replace="pages/popup/" flags="g" byline="true" encoding="utf-8" >
+			<fileset dir="${workingcopy}/js">
+				<include name="**/*.js" />
+			</fileset>
+		</replaceregexp>
+	</target>
+	
+</project>

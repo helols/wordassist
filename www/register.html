@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" debug="true">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Daum 에디터 - 컨텐츠 등록 예제</title>
+	#set($txVersion = $request.getParameter("ver"))
+	<style type="text/css">
+		body { padding:0;margin:0; background:#fff; font-family:'굴림',gulim,sans-serif; font-size:12px;  }
+		
+		.header {
+			font-size:12px; color:#fff; font-weight:bold; 
+			height:23px; margin:0; padding:11px 9px 0 20px; 
+			background-image:url(http://icon.daum-img.net/editor/music/bg_top.gif?rv=1.0.1); 
+		}
+		
+		.body { padding: 0 20px; }
+		.dialog { float:right; }
+		.wrapper { float:left; }
+		
+		.body h2 { font-size:12px; color:#a7b9ec; font-weight:bold; }
+		
+		.param dd { 
+			line-height:17px; margin:5px 0; padding:0; background-color:#ffffdb;
+			border:1px solid #d8c8bb; padding:10px 11px 7px;
+		}
+		
+		form { padding:0;margin:0; }
+		.field {
+			padding: 0; margin:10px 0;
+		}
+		.field input {
+			background:#fafafa; height:14px; padding:2px 0 0 2px;
+			border-color:#bdbdbd #d1d1d1 #d1d1d1 #bdbdbd; border-style:solid; border-width:1px;
+			color:#666666; font-size:12px;
+		}
+		.field select { font-size:12px; }
+		
+		.alert { padding:0; background:url(http://icon.daum-img.net/editor/file/ico_stop.gif?rv=1.0.1) 0 0 no-repeat; margin:14px 36px 21px; color:#999; }
+		.alert dt { margin:0; font-size:12px; font-weight:bold; color:#6486e4; padding:8px 0 9px 37px; }
+		.alert dd { line-height:17px; margin:0 0 0 36px; padding:0;}
+		.alert strong { 
+			color:#a7b9ec; font-weight:normal;
+		}
+		
+		.footer {
+			padding:10px 0 10px 330px; margin:10px 0 0 0; height:25px; background-color:#e9e9e9; clear:both;
+		}
+		
+		/* width, position  */
+		.body { width:800px; }
+		.wrapper { width:800px; }
+		
+	</style>
+</head>
+<body>
+<h1 class="header">
+	컨텐츠 등록 예제
+</h1>
+<div class="body">
+	<h2>컨텐츠 확인</h2>
+	<dl class="param">
+		<dd>
+		<div class="tx-content-container">
+			#set( $content = $request.getParameter("tx_content"))
+			$content
+		</div>
+		</dd>
+	</dl>
+	<h2>파라미터 확인</h2>
+	<dl class="param">
+		#foreach($key in $request.getParameterNames())
+		<dd>
+			<b>$key</b><br/>
+			#foreach($data in $request.getParameterValues($key)) $esc.html($data) #end
+		</dd>
+		#end
+	</dl>
+</div>
+<!-- 버튼 시작 -->
+<div class="footer">
+	<a onclick="showEditor(); return false;" href="#">뒤로</a>
+</div>
+<script type="text/javascript">
+// <![CDATA[
+	function showEditor() {
+		history.back();
+	}
+// ]]>
+</script>
+<!-- 버튼 끝 -->	
+</body>
+</html>

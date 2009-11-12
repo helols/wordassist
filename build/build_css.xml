@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<project name="trex_build_css">
+	<!-- merge & minify css -->
+	<target name="merge_editor_css" >
+		<echo message="Merge editor.css ..." />
+		<mkdir dir="${dist.dir}/css/_orig"/>
+		<java jar="${JAR}" fork="true">
+        	<jvmarg value="-Dfile.encoding=UTF-8" />
+            <arg value="pwe/concatStylesheet.js" />
+			<arg value="${dist.dir}/css/_orig/editor.css" />
+			<arg value="${workingcopy}" />
+			<arg value="/css/editor.css" />
+        </java>
+		<copy file="${dist.dir}/css/_orig/editor.css" tofile="${dist.dir}/css/editor.css" overwrite="true" />
+		<copy file="${workingcopy}/css/popup.css" tofile="${dist.dir}/css/popup.css" overwrite="true" />
+	</target>
+	
+	<target name="merge_contents4xxx_css" >
+		<echo message="Merge contents4xxx.css ..." />
+		<java jar="${JAR}" fork="true">
+        	<jvmarg value="-Dfile.encoding=UTF-8" />
+            <arg value="pwe/concatStylesheet.js" />
+			<arg value="${dist.dir}/css/_orig/contents4view.css" />
+			<arg value="${workingcopy}" />
+			<arg value="/css/contents4view.css" />
+        </java>
+		<copy file="${dist.dir}/css/_orig/contents4view.css" tofile="${dist.dir}/css/contents4view.css" overwrite="true" />
+		<java jar="${JAR}" fork="true">
+        	<jvmarg value="-Dfile.encoding=UTF-8" />
+            <arg value="pwe/concatStylesheet.js" />
+			<arg value="${dist.dir}/css/_orig/contents4edit.css" />
+			<arg value="${workingcopy}" />
+			<arg value="/css/contents4edit.css" />
+        </java>
+		<copy file="${dist.dir}/css/_orig/contents4edit.css" tofile="${dist.dir}/css/contents4edit.css" overwrite="true" />
+	</target>
+	
+	<!-- not use --> 
+	<target name="minify_editor_css" depends="merge_editor_css">
+		<echo message="Minify _orig/editor.css" />
+		<!--java jar="${COMPRESSOR}" fork="true">
+			<arg value="- -type" />
+			<arg value="css" />	
+			<arg value="- -line-break" />
+			<arg value="1000" />
+			<arg file="${dist.dir}/css/_orig/editor.css" />
+			<arg value="-o" />
+			<arg file="${dist.dir}/css/editor.min.css" /> 
+		</java--><!-- todo -->
+	</target>
+	
+</project>

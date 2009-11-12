@@ -1,0 +1,52 @@
+/* menu */
+.tx-menu { display:none; border:1px solid #bababa; background:#ffffff; padding:1px; z-index:15000; position:absolute;left:0;top:28px; }
+.tx-menu ul {margin:0px;}
+.tx-menu .tx-menu-inner { background:#f9f9f9; }
+	
+ul.tx-menu-list { background:#fff;}
+li.tx-menu-list-item { color:#333; font-size:12px; font-family:'돋움',dotum; list-style:none; white-space: nowrap; -moz-user-select:none; -khtml-user-select:none; }
+li.tx-menu-list-item a { 
+	display:block; padding:3px 10px 3px 10px; white-space: nowrap; text-decoration:none;
+	color:#555; -moz-outline: 0 none; outline: 0 none; cursor:pointer; clear:both; 
+}
+li.tx-menu-list-item a:hover { background-color:#eee; text-decoration:none; }
+li.tx-menu-list-item a span.tx-txt { color:#999999; line-height:1.4; }
+
+/* colorpallete */
+.tx-colorpallete { display:none; border:1px solid #bababa; background:#fbfbfb; width:195px; padding:0; z-index:15000; position:absolute; }
+.tx-colorpallete .tx-menu-inner { background:#f9f9f9; padding:7px 0 7px 7px !important; }
+
+.tx-colorpallete ul.tx-pallete-text-list { clear:both; height:84px; margin-bottom:6px; }
+.tx-colorpallete ul.tx-pallete-text-list li { width:59px; height:16px; float:left; margin:0 2px 1px 0; cursor:pointer; }
+.tx-colorpallete ul.tx-pallete-text-list li a { text-decoration:none; padding:0; margin-left:4px; font-size:12px; }
+.tx-colorpallete ul.tx-pallete-text-list li a:hover { text-decoration:underline; background:none; }
+
+.tx-colorpallete ul.tx-pallete-thumb-list { clear:both; height:96px; list-style:none; margin: 0px;}
+.tx-colorpallete ul.tx-pallete-thumb-list li { float:left; margin:0 1px 1px 0; width:12px; height:12px; cursor:pointer; }
+.tx-colorpallete ul.tx-pallete-thumb-list li.tx-menu-list-item { width:12px; height:12px; }
+
+.tx-colorpallete div.tx-pallete-buttons { clear:both; height:12px; margin: 6px 0 0;}
+.tx-colorpallete div.tx-pallete-buttons a { display:block; text-indent:-100em; overflow:hidden; }
+
+.tx-colorpallete div.tx-pallete-buttons p.tx-pallete-revert { float:left; margin:0;}
+.tx-colorpallete div.tx-pallete-buttons p.tx-pallete-revert a { width:13px; height:12px; background:url(/daumeditor/images/icon/btn_revert.gif?rv=1.0.1) no-repeat; }
+
+.tx-colorpallete div.tx-pallete-buttons p.tx-pallete-more { float:right; margin:1px 6px 0 0; }
+.tx-colorpallete div.tx-pallete-buttons p.tx-pallete-more a.tx-more-down { width:36px; height:10px; background:url(/daumeditor/images/icon/btn_a_spread.gif?rv=1.0.1) no-repeat; }
+.tx-colorpallete div.tx-pallete-buttons p.tx-pallete-more a.tx-more-up { width:28px; height:10px; background:url(/daumeditor/images/icon/btn_a_fold.gif?rv=1.0.1) no-repeat; }
+
+.tx-colorpallete .tx-pallete-picker { display:none; clear:both; margin-top:7px; height:128px;}
+.tx-colorpallete p.tx-pallete-input { margin:0 7px 0 0;clear:both; height:21px; border-bottom:1px solid #ececec;} 
+.tx-colorpallete p.tx-pallete-input span { float:left; margin-right:3px; width:73px; height:14px; border:1px solid #d9d9d9; background:#ed1f1f; } 
+.tx-colorpallete p.tx-pallete-input input { float:left; margin-right:4px; width:62px; height:12px; border-top:1px solid #a7a7a7; border-right:1px solid #eaeaea; border-bottom:1px solid #eaeaea; border-left:1px solid #a7a7a7; color:#333; } 
+.tx-colorpallete p.tx-pallete-input a { float:right; width:33px; height:16px; background:url(/daumeditor/images/icon/btn_l_input_1.gif) no-repeat; text-indent:-100em; cursor:pointer; } 
+
+.tx-colorpallete .tx-pallete-picker .tx-pallete-pickerbox { float:left; margin-bottom:5px; border:1px solid #d9d9d9; padding:4px; display:inline;}
+.tx-colorpallete .tx-pallete-picker .tx-chromabar { float:left; position:relative; width:150px; height:120px; cursor:crosshair; margin-right:4px;
+ background:#ff0000 url(/daumeditor/images/icon/img_color_w.png) no-repeat;
+}
+.tx-colorpallete .tx-pallete-picker .tx-huebar { float:left; position:relative; width:18px; height:120px; cursor:crosshair; overflow:hidden;
+ background:url(/daumeditor/images/icon/img_colorbar_w.gif) no-repeat;
+}
+
+* html .tx-colorpallete .tx-pallete-picker .tx-chromabar { background:none; filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='/daumeditor/images/icon/img_color_w.png?rv=1.0.4', sizingMethod='scale'); }

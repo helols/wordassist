@@ -1,0 +1,6 @@
+.tx-image-small a.tx-icon {
+	height: 22px;
+	width: 21px;
+	background-position: -157px -10px;
+}
+.tx-image-small a:hover {background-position:-157px -10px;}

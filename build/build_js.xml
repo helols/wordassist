@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<project name="trex_build_js">
+	<!-- editor.js : merge & minify javascript -->
+	<target name="merge_editor_js" >
+		<copy
+				file="${workingcopy}/js/global.js" 
+				todir="${dist.dir}/js/">
+		</copy>
+		
+		<echo message="Merge editor.js ..." />
+		<mkdir dir="${dist.dir}/js/_orig"/>
+		<java jar="${JAR}" fork="true">
+        	<jvmarg value="-Dfile.encoding=UTF-8" />
+            <arg value="pwe/concatEditor.js" />
+			<arg value="${dist.dir}/js/_orig/editor.js" />
+			<arg value="${workingcopy}" />
+			<arg value="/js/editor.js" />
+        </java>
+	</target>
+	<target name="minify_editor_js" depends="merge_editor_js">
+		<echo message="Escape orig.editor.js" />
+		<native2ascii 
+			encoding="utf-8" 
+			src="${dist.dir}/js/_orig" 
+			dest="${dist.dir}/js/_orig" includes="editor.js" 
+			ext=".esc.js"/>
+		<echo message="Delete console message" />
+		<copy file="${dist.dir}/js/_orig/editor.esc.js" tofile="${dist.dir}/js/_orig/editor.test.js"/>
+		
+		<replaceregexp match="(console\.[^;]*;)" replace="" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${dist.dir}/js/_orig" includes="editor.esc.js"/>
+		</replaceregexp>
+		
+		<replaceregexp match="(StopWatch\.lap\([^;]*;)" replace="" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${dist.dir}/js/_orig" includes="editor.esc.js"/>
+		</replaceregexp>
+		
+	</target>
+	
+	<!-- editor_PROJECT.js : merge & minify javascript -->
+	<target name="merge_projects_js">
+		<echo message="Merge projects.js ..." />
+		<java jar="${JAR}" fork="true">
+        	<jvmarg value="-Dfile.encoding=UTF-8" />
+            <arg value="pwe/concatProjects.js" />
+			<arg value="${dist.dir}/js/_orig" />
+			<arg value="${workingcopy}" />
+        </java>
+	</target>
+	<target name="minify_projects_js" depends="merge_projects_js">
+		<echo message="Escaping project sources ..." />
+		<native2ascii 
+			encoding="utf-8" 
+			src="${dist.dir}/js/_orig" 
+			dest="${dist.dir}/js/_orig" includes="editor_*" 
+			ext=".esc.js"/>
+			
+		<replaceregexp match="(console\.[^;]*;)" replace="" flags="g" byline="true" 	encoding="utf-8" >
+		    <fileset dir="${dist.dir}/js/_orig" includes="editor_*"/>
+		</replaceregexp>
+		
+		<replaceregexp match="(StopWatch\.lap\([^;]*;)" replace="" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${dist.dir}/js/_orig" includes="editor_*"/>
+		</replaceregexp>
+		
+	</target>
+	
+	<!-- popup.js : merge & minify javascript -->
+	<target name="merge_popup_js">
+		<echo message="Merge popup.js ..." />
+		<java jar="${JAR}" fork="true">
+        	<jvmarg value="-Dfile.encoding=UTF-8" />
+            <arg value="pwe/concatEditor.js" />
+			<arg value="${dist.dir}/js/_orig/popup.js" />
+			<arg value="${workingcopy}" />
+			<arg value="/js/popup.js" />
+        </java>
+	</target>
+	<target name="minify_popup_js" depends="merge_popup_js">
+		<echo message="Escape orig.popup.js" />
+		<native2ascii 
+			encoding="utf-8" 
+			src="${dist.dir}/js/_orig" 
+			dest="${dist.dir}/js/_orig" includes="popup.js" 
+			ext=".esc.js"/>
+		<echo message="Delete console message" />
+		<copy file="${dist.dir}/js/_orig/popup.esc.js" tofile="${dist.dir}/js/_orig/popup.test.js"/>
+		
+		<replaceregexp match="(console\.[^;]*;)" replace="" flags="g" byline="true" 	encoding="utf-8" >
+		    <fileset dir="${dist.dir}/js/_orig" includes="popup.esc.js"/>
+		</replaceregexp>
+		
+		<replaceregexp match="(StopWatch\.lap\([^;]*;)" replace="" flags="g" byline="true" encoding="utf-8" >
+		    <fileset dir="${dist.dir}/js/_orig" includes="popup.esc.js"/>
+		</replaceregexp>
+
+	</target>
+	
+	<target name="minify_orig_all_js">
+	<echo message="Minifying project sources ..." />
+		<java jar="${JAR}" fork="true">
+        	<jvmarg value="-Dfile.encoding=UTF-8" />
+            <arg value="pwe/compressorRunner.js" />
+			<arg value="${dist.dir}/js/" />
+			<arg value="${COMPRESSOR}" />
+        </java>
+	</target>
+	
+	<!-- Layout and Backgroung -->
+	<target name="build_js_listset" > 
+		<echo message="Copy listset js" />
+		<mkdir dir="${dist.dir}/js/_orig/listset"/>
+		<copy encoding="UTF-8" 
+			todir="${dist.dir}/js/_orig/listset" overwrite="true">
+			<fileset dir="${workingcopy}/js/listset">
+				<include name="*.js" />
+			</fileset>
+   		</copy>
+		<mkdir dir="${dist.dir}/js/listset"/>
+		<native2ascii 
+			encoding="utf-8" 
+			src="${dist.dir}/js/_orig/listset" 
+			dest="${dist.dir}/js/listset" 
+			includes="*.js" 
+			ext=".js"/>
+	</target>
+	
+</project>
