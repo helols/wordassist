@@ -76,6 +76,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 switch(ev.keyCode){
                     case $tx.KEY_DOWN :
                     case $tx.KEY_UP :
+                    case $tx.KEY_RETURN :
                         console.log("KEY_CODE"+ev.keyCode);
                         if($tx.KEY_UP === ev.keyCode)
                             _assist.keyEventProcess("up");
