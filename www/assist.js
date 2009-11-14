@@ -14,7 +14,7 @@ var Assist = function(options) {
         var han = /[ㄱ-힣]/g;
         var chk_han = str.match(han);
 
-        if(chk_han !== null&&str.length === chk_han.length) {
+        if(str.length === chk_han.length) {
             return true;
         } else {
             return false;
@@ -26,7 +26,7 @@ var Assist = function(options) {
         var eng = /[a-z|A-Z]/g;
         var chk_eng = str.match(eng);
 
-        if(chk_eng !== null && str.length === chk_eng.length) {
+        if(str.length === chk_eng.length) {
             return true;
         } else {
             return false;
@@ -34,7 +34,7 @@ var Assist = function(options) {
     };    
     
     var insertItems = function(list) {
-        list.each(function(data){
+      list.each(function(data){
             element.append("<li>"+ data.word +" : " + data.desc +"</li>");
         });
     }
@@ -50,28 +50,19 @@ var Assist = function(options) {
                 
                 var list = [];                
                 for(i=0; i<channel.result; i++) {
-                    list.push({word : channel.item[i].title, desc : channel.item[i].description});
+                    list.push({word : channel.item[i].title, desc : channel.item[i].description});	
                 }
-
+                
                 insertItems(list);
         });
     };
 
     var english = function(q) {
-        var URL = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+q+'&cp=3';
-         jQuery.getJSON(URL,
-            function(datas) {
-                var list = [];
-                datas[1].each((function(data){
-                   list.push({word : data[0], desc : data[1]});
-		        }));
-                insertItems(list);
-        });
+        
     };
     
     this.start = function(top, left, str) {
-    	var wordList;
-    	
+   	
         if(element.size() === 0 ) {
             element = jQuery('#assist');        
         }
@@ -79,7 +70,7 @@ var Assist = function(options) {
         if(isHangul(str)) {
             korean(str);
         } else if(isEnglish(str)) {
-            english(str);
+            
         } else {
             
         }
@@ -106,5 +97,7 @@ var Assist = function(options) {
 
 function test() {
 	var a = new Assist({});
+	a.start(300, 300, '하늘');
+	alert("영어 테스트");
 	a.start(300, 300, 'scho');
 }
