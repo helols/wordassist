@@ -8,6 +8,7 @@ var Assist = function(options) {
 	var callback = options.callback || function() {alert("Options havn't callback function");};
     
     var self = this;
+    
     var element = jQuery('#assist');
     
     //한글채크            
@@ -49,6 +50,11 @@ var Assist = function(options) {
     };
     
     this.start = function(top, left, str) {
+    	var wordList;
+    	
+        if(element.size() === 0 ) {
+            element = jQuery('#assist');        
+        }
         
         if(isHangul(str)) {
             
