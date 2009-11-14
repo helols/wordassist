@@ -30,9 +30,19 @@
 	<style type="text/css">
 	   #assist {
 	       position: absolute;	       
-	       display : none;
-	       border: 1px solid red;
+	       display : block;
+	       border: 1px solid #000000;
+           width:290px;
+           padding:3px;
+           text-align:center;
 	   };
+
+       #assist_select {
+            background-color:#3266CC;
+            clear:both;
+            padding:2px 5px 0;
+	   };
+
 	</style>
 	<style type="text/css">
 		body { padding:0;margin:0; background:#fff; font-family:'굴림',gulim,sans-serif; font-size:12px;  }
@@ -156,11 +166,6 @@
 		/*-------- 글 등록할 때 필요한 함수들 끝 ----------*/
 		// ]]>
 	</script>
-	<style type="text/css">
-	   .tx-cinema a.tx-icon { background:url(http://daumopeneditor.googlecode.com/files/icon_movie.gif) no-repeat; }
-       .tx-cinema-menu { width: 200px; }
-	</style>
-	<script type="text/javascirpt" src="cinema.js"></script>
 </head>
 <body>
 <h1 class="header">
@@ -415,11 +420,9 @@
     jQuery.noConflict();
 </script>
 
-<ul id="assist">
-    <li>dfdfdfdf</li>
-    <li>dfdfdfdf</li>
-    <li>dfdfdfdf</li>
-</ul>
+<div id="assist" >
+   <img id="ajaxloding" src="./daumeditor/images/deco/loading.gif" >
+</div>
 
 </body>
 </html>
