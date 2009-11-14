@@ -53,8 +53,10 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
         // 팝업 div에서 선택했을때 문자열을 가지고 selectspan 문자열 치환.
         var _selectedCallback = function(str){
+            console.log("_selectedCallback>>"+str);
             var selectspan  = $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan');
-            if(selectspan !== null || selectspan !== undefined){
+            console.log(selectspan);
+            if(selectspan != null && selectspan !== undefined){
                 selectspan.innerHTML = str;
             }
             _wordAssistExpires(); // 키이벤트 없애고 ... 팝업닫고.
@@ -64,6 +66,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             eventBind();
             console.log(_self.assistTop+5)
             console.log(_self.assistLeft+5)
+            console.log("_self.dataString>>"+_self.dataString)
+
             _assist.start(_self.dataString,_self.assistTop+5, _self.assistLeft+5);  // 팝업열기.
         }
 
@@ -77,7 +81,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                     case $tx.KEY_DOWN :
                     case $tx.KEY_UP :
                     case $tx.KEY_RETURN :
-                        console.log("KEY_CODE"+ev.keyCode);
                         if($tx.KEY_UP === ev.keyCode)
                             _assist.keyEventProcess("up");
                         else if($tx.KEY_DOWN === ev.keyCode)
@@ -140,7 +143,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                                     var sliceTextNode = spaceIdx > 0?$tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx):tmpNode.previousSibling.previousSibling;
 
                                     var span = processor.create("span", {id:'selectspan',name:'selectspan'});
-                                    _self.dataString = sliceTextNode.data;
+                                    _self.dataString = $tom.getText(sliceTextNode);
                                     $tom.insertAt(span, sliceTextNode);
                                     $tom.append(span,sliceTextNode);
                                     popupDiv();

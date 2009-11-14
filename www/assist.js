@@ -133,7 +133,7 @@ var Assist = function(options) {
                     }
                 break;
             case 'enter':
-                this.close();                
+                this.close(true);                
                 break;
             default:
                 this.close();
