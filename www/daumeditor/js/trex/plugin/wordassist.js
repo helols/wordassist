@@ -56,16 +56,15 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             var selectspan  = $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan');
             if(selectspan !== null || selectspan !== undefined){
                 selectspan.innerHTML = str;
-                $tom.unwrap(selectspan);
             }
             _wordAssistExpires(); // 키이벤트 없애고 ... 팝업닫고.
         }.bind(this);
         
         var popupDiv = function(){
             eventBind();
-            console.log(_self.assistTop-5)
-            console.log(_self.assistLeft-5)
-            _assist.start(_self.dataString,_self.assistTop-5, _self.assistLeft-5);  // 팝업열기.
+            console.log(_self.assistTop+5)
+            console.log(_self.assistLeft+5)
+            _assist.start(_self.dataString,_self.assistTop+5, _self.assistLeft+5);  // 팝업열기.
         }
 
         var eventBind = function(){
@@ -82,6 +81,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                             _assist.keyEventProcess("up");
                         else if($tx.KEY_DOWN === ev.keyCode)
                             _assist.keyEventProcess("down");
+                        else if($tx.KEY_RETURN === ev.keyCode)
+                            _assist.keyEventProcess("enter");
                         $tx.stop(ev);
                         break;
                     case $tx.KEY_LEFT :
@@ -95,6 +96,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 		 }
 
         _canvas_.observeJob(Trex.Ev.__CANVAS_PANEL_KEYDOWN, keyEvent);
+
         /**
          * todo
          * 1.포커스에 div 넣기. 포커스 계산후에 바로 삭제. - 완료.
@@ -156,18 +158,25 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 				}else{
                     _wordAssistExpires(); 
                     _assist.close(); // pup닫기.
-                    isWordassist = true;
+                    isWordassist = false;
                 }
 			}.bind(this);
         var _wordAssistExpires = function(){
             isWordassistEvent = false;
+            isWordassist = false;
             var tmpNode = $tx('tx_canvas_wysiwyg').contentDocument.getElementById('tmpMarking');
             if(tmpNode !== null || tmpNode !== undefined){
                 $tom.remove(tmpNode);
             }
-            isWordassist = true;
-        };
-
+            var selectspan =  $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan')
+            if(selectspan != null)$tom.unwrap(selectspan);
+        }.bind(this);
+        _canvas_.observeJob(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN, function(){
+            if(isWordassist){
+                _wordAssistExpires;
+                _assist.close();
+            }
+        });
         this.execute = _toggleAssist;
         this.wordAssistExpires = _wordAssistExpires;
         this.selectedCallback = _selectedCallback;
@@ -176,6 +185,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 	},
     getAssistTop : function(){ return this.assistTop;},
     getSelText : function(){return this._canvas.getProcessor().getText()},
-    getAssistLeft: function(){return this.assistLeft;}
+    getAssistLeft: function(){return this.assistLeft;},
+    close: function(){this.wordAssistExpires();}
 
 });

@@ -122,6 +122,7 @@ var Assist = function(options) {
     };
     
     this.close = function(isCallCallBackFunc) {
+        Editor.getPlugin("wordassist").close();
     	element.hide();
     	
         isCallCallBackFunc = isCallCallBackFunc || false;
