@@ -38,7 +38,7 @@ var Assist = function(options) {
     	var table = jQuery("<table>")
     	
         list.each(function(data){
-            table.append("<tr><td>"+ data.word +"</td><td>" + data.desc +"</td></tr>");
+            table.append('<tr><td>'+ data.word +'</td><td>' + data.desc +'</td></tr>');
         });
         
     	element.html('').append(table);
@@ -76,8 +76,8 @@ var Assist = function(options) {
         });
     };
     
-    this.start = function(top, left, str) {
-   	
+    this.start = function(str, top, left) {
+   	    
         if(element.size() === 0 ) {
             element = jQuery('#assist');        
         }
@@ -90,7 +90,9 @@ var Assist = function(options) {
             
         }
         
-        element.css('top', top).css('left', left).show();
+        if(top !== undefined || left !== undefined) {
+            element.css('top', top).css('left', left).show();
+        }
     };
     
     this.keyEventProcess = function(action) {
