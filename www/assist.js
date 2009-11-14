@@ -43,6 +43,13 @@ var Assist = function(options) {
         list.each(function(data){
             table.append('<tr><td class="assist_word">'+ data.word +'</td><td class="assist_des">' + data.desc +'</td></tr>');
         });
+        console.log(table.find('tr'));
+        table.find("tr").hover(function(){
+                jQuery('.assist_select').removeClass();
+                jQuery(this).addClass('assist_select');
+            }, function(){
+               //NOP
+        }).click(function() {self.close(true);});
         
     	element.html('').append(table);
     }
