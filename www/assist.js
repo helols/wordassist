@@ -1,9 +1,14 @@
 var Assist = function(options) {
 	
-	var callback = options.callback || function() {};
-
+	if(options === undefined) {
+		alert("You must define options.");
+		return;
+	}
+	
+	var callback = options.callback || function() {alert("Options havn't callback function");};
+    
     var self = this;
-    var element;
+    var element = jQuery('#assist');
     
     //한글채크            
     var isHangul = function(str) {
@@ -43,9 +48,7 @@ var Assist = function(options) {
         
     };
     
-    this.start = function(x, y, str) {
-        //open div
-        element = jQuery('<div>').attr('id', '');
+    this.start = function(top, left, str) {
         
         if(isHangul(str)) {
             
@@ -54,13 +57,21 @@ var Assist = function(options) {
         } else {
             
         }
+        
+        element.css('top', top).css('left', left).show();
     };
     
     this.keyEventProcess = function(action) {
     	// UP, DOWN, ENTER
     };
     
-    this.close = function() {
-    	
+    this.close = function(isCallCallBackFunc) {
+        isCallCallBackFunc = isCallCallBackFunc || false;
+        
+        if(isCallCallBackFunc) {
+        	callback();
+        }
     };
+    
+    this.callbackTest = callback;
 };    
