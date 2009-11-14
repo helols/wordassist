@@ -1,0 +1,42 @@
+.tx-fullscreen a.tx-icon {width:22px;height:22px;}
+.tx-fullscreen a.tx-icon {background-position:-63px -110px;}
+/* fullscreen */
+.tx-editor-fullscreen .tx-fullscreen a.tx-icon {background-position:-85px  -109px;}
+/* fullscreen top */
+.tx-fullscreen-notice { 
+	display:none;
+	background-color:#484848; border-bottom:1px solid #262626; color:#cccccc;
+	font-family:'돋움',dotum,verdana; font-size:11px; height:20px; min-width:800px; padding:10px 0 0 10px; white-space:nowrap;
+ }
+.tx-fullscreen-notice a {
+	background:transparent url(/daumeditor/images/icon/ic_arrow02.gif?rv=1.0.4) no-repeat scroll right 2px; color:#cccccc;
+	font-family:'돋움',dotum,verdana; font-size:11px; padding:0 7px 0 5px; text-decoration:underline; color: #ffffff; font-weight:bold
+ }
+/* fullscreen bottom */
+.tx-fullscreen-line { display:none; background:transparent url(/daumeditor/images/icon/w_bgimg_02.gif?rv=1.0.4) repeat-x; height:17px; font-size:0px; }
+.tx-fullscreen-line .tx-fullscreen-line-division { background:transparent url(/daumeditor/images/icon/bot_bg.gif) repeat-x; height:7px; overflow:hidden; text-indent:-100em; }
+.tx-fullscreen-line-division .tx-fullscreen-line-left { background:transparent url(/daumeditor/images/icon/bot_left.gif) no-repeat left top; width:7px; height:7px; float:left; overflow:hidden; text-indent:-100em; }
+.tx-fullscreen-line-division .tx-fullscreen-line-right { background:transparent url(/daumeditor/images/icon/bot_right.gif) no-repeat right top; width:7px; height:7px; float:right; overflow:hidden; text-indent:-100em; }
+.tx-fullscreen-line .tx-fullscreen-line-box { background:transparent url(/daumeditor/images/icon/w_bgimg.gif) repeat-x scroll 0%; height:10px; overflow:hidden; text-indent:-100em; font-size: 0px; }
+.tx-fullscreen-line-box .tx-fullscreen-line-left { background:transparent url(/daumeditor/images/icon/w_leftimg.gif) no-repeat left top; width:4px; height:10px; float:left; overflow:hidden; text-indent:-100em; }
+.tx-fullscreen-line-box .tx-fullscreen-line-right { background:transparent url(/daumeditor/images/icon/w_rightimg.gif) no-repeat right top; width:4px; height:10px; float:right; overflow:hidden; text-indent:-100em; }
+.tx-fullscreen-line-box a { 
+	display:block; width:59px; height:10px; margin:0 auto; overflow:hidden; text-indent:-10000em; -moz-user-select:none; cursor:pointer;
+	background:transparent url(/daumeditor/images/icon/btn_spread_box.gif) no-repeat;
+}
+.tx-fullscreen-line-box a.tx-attach-close { background:transparent url(/daumeditor/images/icon/btn_fold_box.gif?rv=1.0.4) no-repeat scroll 0%; }
+
+.tx-editor-fullscreen { background-color:#FFFFFF; left:0; min-width:800px; position:absolute; top:0; width:100%; z-index:1000; }
+.tx-editor-fullscreen .tx-fullscreen-notice { display:block; }
+.tx-editor-fullscreen .tx-fullscreen-line { display:block; }
+.tx-editor-fullscreen .tx-attach-div {margin-top:0;}
+.tx-editor-fullscreen .tx-attach-txt {padding-left:9px;}
+* html .tx-editor-fullscreen .tx-attach-txt{padding-top:10px;}
+*+ html .tx-editor-fullscreen .tx-attach-txt{padding-top:10px;}
+* html .tx-editor-fullscreen div.tx-canvas textarea {width:100%;}
+
+.tx-fullscreen_attachbox-bar {cursor:default;display:none;}
+.tx-fullscreen_attachbox-bar img {-moz-user-select:none;-khtml-user-select:none;}
+.tx-fullscreen_attachbox-bar div.tx-fullscreen_attachbox-bar-left{width:100%; height:7px; background:url(/daumeditor/images/icon/bot_left.gif?rv=1.0.4) no-repeat; }
+.tx-fullscreen_attachbox-bar div.tx-fullscreen_attachbox-bar-right{height:7px; background:url(/daumeditor/images/icon/bot_right.gif?rv=1.0.4) no-repeat top right; }
+.tx-fullscreen_attachbox-bar div.tx-fullscreen_attachbox-bar-bg{height:7px; margin:0 7px; background:url(/daumeditor/images/icon/bot_bg.gif?rv=1.0.4) repeat-x; text-align:center; }

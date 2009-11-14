@@ -1,0 +1,11 @@
+.tx-quote a.tx-icon {background-position:-125px -90px;}
+/* quote */
+.tx-quote-menu { width:149px;}
+
+.tx-quote-menu div.tx-menu-list { padding:4px; }
+.tx-quote-menu div.tx-menu-list table { border-collapse:collapse; }
+.tx-quote-menu div.tx-menu-list td { padding:0; border:1px solid #f9f9f9; }
+.tx-quote-menu div.tx-menu-list td a { float:left;border:2px solid #f9f9f9; }
+.tx-quote-menu div.tx-menu-list td a:hover { border:2px solid #768fbd; } 
+.tx-quote-menu div.tx-menu-list td span { display:block; cursor:pointer; }
+.tx-quote-menu div.tx-menu-list td span img { width:42px; height:42px; }

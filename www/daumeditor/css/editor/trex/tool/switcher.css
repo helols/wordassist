@@ -1,0 +1,17 @@
+/* switcher */
+.tx-switcher-menu {width:57px; }
+.tx-switchtoggle a {width:48px; background-position:0 -81px; margin:0px;}
+.tx-switchtoggle-hovered a {width:48px; background-position:0 -104px; margin:0px;}
+.tx-switchtoggle-pushed a {width:48px; background-position:-58px -81px; margin:0px;}
+
+.tx-switchtoggle a,.tx-switchtoggle-hovered a, .tx-switchtoggle-pushed a { width: 48px; height: 25px; text-indent: -100em; overflow: hidden; display:block; font-size: 12px} 
+.tx-switchtoggle a, .tx-switchtoggle-hovered a, .tx-switchtoggle-pushed a {
+	background-image: url(/daumeditor/images/icon/tx_text.gif?rv=1.0.6);
+	background-repeat: no-repeat;
+	font-size: 0px;
+	line-height: 0px;
+	text-indent: -1000px;
+	overflow: hidden;
+	display: block;
+}
+

@@ -1,0 +1,6 @@
+/* quotation */
+.tx-quote1 { border: 1px solid #dbdbdb; margin: 10px; padding: 10px; }
+.tx-quote2 { border: 3px solid #dbdbdb; margin: 10px; padding: 10px; }		
+.tx-quote3 { border: 1px dashed #dbdbdb; margin: 10px; padding: 10px; }
+.tx-quote4 { border: none; background: url(/daumeditor/images/deco/titation01.gif?rv=1.0.1) top left no-repeat; padding: 0px 20px 10px 20px; margin: 10px; }
+.tx-quote5 { border: none; border-left: 2px solid #dbdbdb; margin: 10px; padding: 10px; }

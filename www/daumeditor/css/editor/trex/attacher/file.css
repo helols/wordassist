@@ -1,0 +1,7 @@
+.tx-list .tx-file a {
+	height: 25px;
+	width: 33px;
+	background-position: -106px 6px;
+}
+.tx-file a:hover {background-position: -106px -18px;}
+.tx-toolbar-basic .tx-list .tx-file a {background-position:-100px 4px; width:46px;}

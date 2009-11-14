@@ -1,0 +1,7 @@
+.tx-list .tx-image a {
+	height: 25px;
+	width: 35px;
+	background-position: 0px 6px;
+}
+.tx-image a:hover {background-position:0px -18px;}
+.tx-toolbar-basic .tx-list .tx-image a {background-position:7px 4px;width:42px;}

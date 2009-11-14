@@ -1,0 +1,29 @@
+/* emoticon */
+
+.tx-emoticon a.tx-icon {background-position:-125px -50px;}
+
+.tx-emoticon-menu {}
+.tx-emoticon-menu div.tx-menu-inner { padding:7px; background:#f9f9f9; }
+
+.tx-emoticon-menu table.tx-menu-matrix-title { margin-top:2px; border-collapse:collapse; }
+.tx-emoticon-menu table.tx-menu-matrix-title td {white-space:nowrap; height:18px; vertical-align:middle;padding:0;}
+.tx-emoticon-menu table.tx-menu-matrix-title a.tx-menu-matrix-title-item { display:block; color:#666; font-family:돋움,dotum; font-size:11px; padding-right:10px; margin-right:4px; background:url(/daumeditor/images/icon/index01.gif?rv=1.0.4) no-repeat 100% 0; cursor:pointer; }
+.tx-emoticon-menu table.tx-menu-matrix-title td.tx-selected a.tx-menu-matrix-title-item { color:#333; font-weight:bold; }
+
+* html .tx-emoticon-menu table.tx-menu-matrix-title { width:38px; padding:0; }
+* html .tx-emoticon-menu table.tx-menu-matrix-title #type1 { width:48px; } 
+*:first-child+html .tx-emoticon-menu table.tx-menu-matrix-title { width:38px; padding:0; }
+*:first-child+html .tx-emoticon-menu table.tx-menu-matrix-title #type1 { width:48px; } 
+.tx-emoticon-menu table.tx-menu-matrix-title #type3 { background:none; } 
+
+.tx-emoticon-menu div.tx-menu-matrix-list { display:none; margin-top:6px; background:#fff; width:196px; }
+.tx-emoticon-menu div.tx-menu-matrix-list table { border-collapse:collapse; }
+.tx-emoticon-menu div.tx-menu-matrix-list td { padding:0; border:1px solid #e5e5e5;  height: 24px; }
+.tx-emoticon-menu div.tx-menu-matrix-list td a { float:left;border:2px solid #ffffff; }
+.tx-emoticon-menu div.tx-menu-matrix-list td a:hover { border:2px solid #768fbd; } 
+.tx-emoticon-menu div.tx-menu-matrix-list td span { display:block; width:23px; height:23px; text-align:center; color:#333; cursor:pointer; overflow:hidden; text-indent:-100em; }
+
+.tx-emoticon-menu div.tx-menu-matrix-per table { background:url(/daumeditor/images/icon/emoticon_01.gif?rv=1.0.4) no-repeat; } 
+.tx-emoticon-menu div.tx-menu-matrix-ani table { background:url(/daumeditor/images/icon/emoticon_02.gif?rv=1.0.4) no-repeat; } 
+.tx-emoticon-menu div.tx-menu-matrix-things table { background:url(/daumeditor/images/icon/emoticon_03.gif?rv=1.0.4) no-repeat; } 
+.tx-emoticon-menu div.tx-menu-matrix-etc table { background:url(/daumeditor/images/icon/emoticon_04.gif?rv=1.0.5) no-repeat; }
