@@ -63,7 +63,7 @@ var Assist = function(options) {
     };
 
     var english = function(q) {
-        var URL = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+q+'&cp=3';
+        var URL = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+q+'&cp='+q.length;
         jQuery.getJSON(URL, function(datas) {
         
             var list = [];
@@ -100,8 +100,8 @@ var Assist = function(options) {
         var command = action.toLowerCase();
         switch(command){
             case 'down' :
-                    jQuery('#assist table tr').each(function(){
-                        console.log(jQuery(this));
+                    var selected = jQuery('#assist table tr').each(function(){
+                        console.log(jQuery(this).val);
                     })
                 break;
             case 'up' :
