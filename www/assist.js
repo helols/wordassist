@@ -38,10 +38,10 @@ var Assist = function(options) {
             this.close();
             return false;
         }
-    	var table = jQuery('<table class="ptable" cellspacing="0" cellpadding="0">')
+    	var table = jQuery('<table class="ptable" cellspacing="0" cellpadding="0" style="width: 293px;">')
     	
         list.each(function(data){
-            table.append('<tr><td class="assist_word">'+ data.word +'</td><td>' + data.desc +'</td></tr>');
+            table.append('<tr><td class="assist_word">'+ data.word +'</td><td class="assist_des">' + data.desc +'</td></tr>');
         });
         
     	element.html('').append(table);
@@ -141,7 +141,7 @@ var Assist = function(options) {
     };
     
     this.close = function(isCallCallBackFunc) {
-        Editor.getPlugin("wordassist").close();
+
     	element.hide();
         isCallCallBackFunc = isCallCallBackFunc || false;
     	
@@ -155,6 +155,7 @@ var Assist = function(options) {
         if(isCallCallBackFunc) {
         	callback(str);
         }
+        Editor.getPlugin("wordassist").close();
     };
     
     this.callbackTest = callback;
