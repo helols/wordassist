@@ -92,11 +92,30 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                          _wordAssistExpires();
                         break;
                     default:
-                        _assist.start($tom.getText($tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan')));
-                }
+                             console.log($tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan'));
+//                         _self.dataString+= String.fromCharCode(ev.keyCode).toLowerCase();
+//                        _assist.start(nodeChec($tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan')));
+//                }
             }
 		 }
 
+        var getText = function(){
+            var snode = $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan');
+            var text = snode.textContent;
+            if(snode.nextSibling !== undefined){
+                    text+= snode.nextSibling.textContent;
+            }
+        }
+
+        var nodeChec = function(node){
+            var text = '';
+            console.log(node);
+            if(node.nextSibling !== null){
+             return text + nodeChec(node.nextSibling);
+            }else{
+                return text;
+            }
+        }
         _canvas_.observeJob(Trex.Ev.__CANVAS_PANEL_KEYDOWN, keyEvent);
 
         /**
@@ -135,6 +154,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                         // 영역 선택하기.
                         if($tom.isText(tmpNode.previousSibling.previousSibling)){
                             var data = tmpNode.previousSibling.previousSibling.data;
+
                             if(data.length > 0){
                                 var spaceIdx = data.lastIndexOf(" ")+1;
                                 if(spaceIdx !== data.length){
