@@ -105,7 +105,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * 6.자동저장시.. span 지워주는.. 거시기 .. ;; 만들어줌.
          */
         var _toggleAssist = function() {
-				if(!this.isWordassist) {
+				if(!isWordassist) {
                     console.log("ctrl + space!! keydown!! ");
                     isWordassist = true;  // true
                     // 임시 div 삽입
@@ -172,15 +172,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         this.wordAssistExpires = _wordAssistExpires;
         this.selectedCallback = _selectedCallback;
 
-
-
-
-        //this.fireJobs("plugin.normalscreen.change"); 으호 호출 하는듯;
-        /*
-
-		this.observeJob('plugin.normalscreen.change', function() {
-			$tx.show(_elBar);
-		});*/
 
 	},
     getAssistTop : function(){ return this.assistTop;},
