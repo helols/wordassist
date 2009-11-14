@@ -97,6 +97,21 @@ var Assist = function(options) {
     
     this.keyEventProcess = function(action) {
     	// UP, DOWN, ENTER
+        var command = action.toLowerCase();
+        switch(command){
+            case 'down' :
+                    jQuery('#assist table tr').each(function(){
+                        console.log(jQuery(this));
+                    })
+                break;
+            case 'up' :
+
+                break;
+            case 'enter':
+                break;
+            default:
+                this.close();
+        }
     };
     
     this.close = function(isCallCallBackFunc) {
