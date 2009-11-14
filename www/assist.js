@@ -41,7 +41,7 @@ var Assist = function(options) {
     	var table = jQuery('<table class="ptable" cellspacing="0" cellpadding="0">')
     	
         list.each(function(data){
-            table.append('<tr><td>'+ data.word +'</td><td>' + data.desc +'</td></tr>');
+            table.append('<tr><td class="assist_word">'+ data.word +'</td><td>' + data.desc +'</td></tr>');
         });
         
     	element.html('').append(table);
@@ -107,14 +107,29 @@ var Assist = function(options) {
                     if(selected.size() === 0) {
                         jQuery('#assist table tr:first').addClass('assist_select');
                     } else {
-                        console.log(selected);
+                    	var next = jQuery('.assist_select').removeClass().next();
+                    	if(next.size() === 0) {
+                    	   jQuery('#assist table tr:first').addClass('assist_select');
+                    	} else {
+                    	   next.addClass("assist_select");
+                    	}
                     }
                 break;
             case 'up' :
-
+                    var selected = jQuery('.assist_select');
+                    if(selected.size() === 0) {
+                        jQuery('#assist table tr:last').addClass('assist_select');
+                    } else {
+                        var prev = jQuery('.assist_select').removeClass().prev();
+                        if(prev.size() === 0) {
+                           jQuery('#assist table tr:last').addClass('assist_select');
+                        } else {
+                           prev.addClass("assist_select");
+                        }
+                    }
                 break;
             case 'enter':
-                jQuery('.assist_select')
+                this.close();                
                 break;
             default:
                 this.close();
@@ -124,11 +139,17 @@ var Assist = function(options) {
     this.close = function(isCallCallBackFunc) {
         Editor.getPlugin("wordassist").close();
     	element.hide();
-    	
         isCallCallBackFunc = isCallCallBackFunc || false;
+    	
+        var selected = jQuery('.assist_select');
+        var str = null;
+        
+        if(selected.size !== 0) {
+           str = jQuery('.assist_select').children('.assist_word').text();    
+        }
         
         if(isCallCallBackFunc) {
-        	callback();
+        	callback(str);
         }
     };
     
@@ -136,7 +157,7 @@ var Assist = function(options) {
 };    
 
 function test() {
-	var a = new Assist({});
+	var a = new Assist({callback : function(str) {alert(str)}});
 	a.start(300, 300, '하늘');
 	alert("영어 테스트");
 	a.start(300, 300, 'scho');
