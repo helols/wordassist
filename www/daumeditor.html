@@ -148,6 +148,11 @@
 		/*-------- 글 등록할 때 필요한 함수들 끝 ----------*/
 		// ]]>
 	</script>
+	<style type="text/css">
+	   .tx-cinema a.tx-icon { background:url(http://daumopeneditor.googlecode.com/files/icon_movie.gif) no-repeat; }
+       .tx-cinema-menu { width: 200px; }
+	</style>
+	<script type="text/javascirpt" src="cinema.js"></script>
 </head>
 <body>
 <h1 class="header">
@@ -220,7 +225,6 @@
 				 #fontsize($initializedId)
 				</ul>
 				<ul class="tx-bar tx-bar-left tx-group-font"> 
-				
 				 #bold($initializedId, "left")
 				 #underline($initializedId, "center")
 				 #italic($initializedId, "center")
@@ -263,6 +267,7 @@
 				 #advanced($initializedId)
 				</ul>
 			</div></div>
+			
 			<!-- 툴바 - 기본 끝 -->
 			<!-- 툴바 - 더보기 시작 -->
 			<div id="tx_toolbar_advanced$!initializedId" class="tx-toolbar tx-toolbar-advanced"><div class="tx-toolbar-boundary">
@@ -393,80 +398,12 @@
 	/*#*-------- 컨텐츠 불러오기 끝 ----------*#*/
 // ]]>
 </script>
+
 <script type="text/javascript" src="jquery-1.3.2.js"></script>
 <script type="text/javascript">
-//<![CDATA[
-    jQuery.noConflict();
-
-    var Assist = function(options) {
-        var self = this;
-        var element;
-        
-        //한글채크            
-        var isHangul = function(str) {
-            han = /[ㄱ-힣]/g;
-            chk_han = str.match(han);
-
-            if(str.length === chk_han.length) {
-                return true;
-            } else {
-                return false;
-            }
-        };
-
-        //영어 채크
-        var isEnglish = function(str) {
-            eng = /[a-z|A-Z]/g;
-            chk_eng = str.match(eng);
-
-            if(str.length === chk_eng.length) {
-                return true;
-            } else {
-                return false;
-            }        
-        };
-    
-        var korean = function(q) {
-            var API_KEY = "7346eb8352778b08bb5bedb006f1bee3bd4375e8";
-            var URL = "http://apis.daum.net/dic/krdic";
-            
-            jQuery.getJSON(URL + "?apikey="+ API_KEY + "&q=" + q + "&kind=WORD&callback=?&output=json",
-                function(data) {                 
-                    console.log(data);
-            });
-        };
-
-        var english = function(q) {
-            
-        };
-        
-        this.start = function(x, y, str) {
-            //open div
-            element = jQuery('div').attr('id', '');
-            
-            if(isHangul(str)) {
-                
-            } else if(isEnglish(str)) {
-                
-            } else {
-                
-            }
-        };
-        
-        this.up = function() {
-            
-        };
-
-        this.down = function() {
-            
-        }
-    };
-
-    function chk(str) {
-
-    }    
-//]]>
+jQuery.noConflict();
 </script>
+<script type="text/javascript" src="assist.js"></script>
 
 </body>
 </html>
