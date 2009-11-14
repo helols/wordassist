@@ -80,6 +80,10 @@ var Assist = function(options) {
     };
     
     this.start = function(str, top, left) {
+   	    console.log("Call Start!!!");
+   	    console.log(str);
+   	    
+   	    str = jQuery.trim(str);  
    	    
         if(element.size() === 0 ) {
             element = jQuery('#assist');        
@@ -90,11 +94,11 @@ var Assist = function(options) {
         } else if(isEnglish(str)) {
             english(str);          
         } else {
-            
+            alert("입력값이 없습니다.")
         }
         
         if(top !== undefined || left !== undefined) {
-            element.css('top', top).css('left', left).show();
+            element.css('top', top).css('left', left).html('<img id="ajaxloding" src="./daumeditor/images/deco/loading.gif" />').show();
         }
     };
     
