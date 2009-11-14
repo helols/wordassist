@@ -92,7 +92,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                          _wordAssistExpires();
                         break;
                     default:
-                             console.log($tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan'));
+                break;
+//                             console.log($tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan'));
 //                         _self.dataString+= String.fromCharCode(ev.keyCode).toLowerCase();
 //                        _assist.start(nodeChec($tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan')));
 //                }
