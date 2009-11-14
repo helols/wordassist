@@ -90,11 +90,12 @@ var Assist = function(options) {
         }
         
         if(isHangul(str)) {
-            korean(str);
+            if(top !== undefined)
+                korean(str);
         } else if(isEnglish(str)) {
             english(str);          
         } else {
-            alert("입력값이 없습니다.")
+            alert("입력값이 없거나, 한글/영어가 혼합되어 있습니다.")
         }
         
         if(top !== undefined || left !== undefined) {
