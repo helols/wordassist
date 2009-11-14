@@ -14,7 +14,7 @@ var Assist = function(options) {
         var han = /[ㄱ-힣]/g;
         var chk_han = str.match(han);
 
-        if(str.length === chk_han.length) {
+        if(chk_han !== null&&str.length === chk_han.length) {
             return true;
         } else {
             return false;
@@ -26,7 +26,7 @@ var Assist = function(options) {
         var eng = /[a-z|A-Z]/g;
         var chk_eng = str.match(eng);
 
-        if(str.length === chk_eng.length) {
+        if(chk_eng !== null && str.length === chk_eng.length) {
             return true;
         } else {
             return false;
@@ -34,12 +34,9 @@ var Assist = function(options) {
     };    
     
     var insertItems = function(list) {
-        console.log(list);
-        var i=0;
-        for(i=0 ; i < list.length; i++) {
-        	console.log(list[i]);
-        	element.appendTo("<li>"+ list[i].word +" : " + list[i].desc +"</li>");
-        }
+        list.each(function(data){
+            element.append("<li>"+ data.word +" : " + data.desc +"</li>");
+        });
     }
 
     var korean = function(q) {
@@ -53,15 +50,23 @@ var Assist = function(options) {
                 
                 var list = [];                
                 for(i=0; i<channel.result; i++) {
-                    list.push({word : channel.item[i].title, desc : channel.item[i].description});	
+                    list.push({word : channel.item[i].title, desc : channel.item[i].description});
                 }
-                
+
                 insertItems(list);
         });
     };
 
     var english = function(q) {
-        
+        var URL = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+q+'&cp=3';
+         jQuery.getJSON(URL,
+            function(datas) {
+                var list = [];
+                datas[1].each((function(data){
+                   list.push({word : data[0], desc : data[1]});
+		        }));
+                insertItems(list);
+        });
     };
     
     this.start = function(top, left, str) {
@@ -74,7 +79,7 @@ var Assist = function(options) {
         if(isHangul(str)) {
             korean(str);
         } else if(isEnglish(str)) {
-            
+            english(str);
         } else {
             
         }
@@ -101,5 +106,5 @@ var Assist = function(options) {
 
 function test() {
 	var a = new Assist({});
-	a.start(300, 300, '생각');
+	a.start(300, 300, 'scho');
 }
