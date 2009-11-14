@@ -34,8 +34,11 @@ var Assist = function(options) {
     };    
     
     var insertItems = function(list) {
-    	
-    	var table = jQuery("<table>")
+    	if(list.length == 0 ){
+            this.close();
+            return false;
+        }
+    	var table = jQuery('<table class="ptable" cellspacing="0" cellpadding="0">')
     	
         list.each(function(data){
             table.append('<tr><td>'+ data.word +'</td><td>' + data.desc +'</td></tr>');
@@ -100,14 +103,18 @@ var Assist = function(options) {
         var command = action.toLowerCase();
         switch(command){
             case 'down' :
-                    var selected = jQuery('#assist table tr').each(function(){
-                        console.log(jQuery(this).val);
-                    })
+                    var selected = jQuery('.assist_select');
+                    if(selected.size() === 0) {
+                        jQuery('#assist table tr:first').addClass('assist_select');
+                    } else {
+                        console.log(selected);
+                    }
                 break;
             case 'up' :
 
                 break;
             case 'enter':
+                jQuery('.assist_select')
                 break;
             default:
                 this.close();

@@ -156,6 +156,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 				}else{
                     _wordAssistExpires(); 
                     _assist.close(); // pup닫기.
+                    isWordassist = true;
                 }
 			}.bind(this);
         var _wordAssistExpires = function(){
@@ -164,6 +165,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             if(tmpNode !== null || tmpNode !== undefined){
                 $tom.remove(tmpNode);
             }
+            isWordassist = true;
         };
 
         this.execute = _toggleAssist;
