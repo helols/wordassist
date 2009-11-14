@@ -65,7 +65,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             eventBind();
             console.log(_self.assistTop-5)
             console.log(_self.assistLeft-5)
-            _assist.start(_self.assistTop-5, _self.assistLeft-5,_self.dataString);  // 팝업열기.
+            _assist.start(_self.dataString,_self.assistTop-5, _self.assistLeft-5);  // 팝업열기.
         }
 
         var eventBind = function(){
@@ -127,8 +127,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                         var left = ileft+parseInt(iframe.offsetParent.offsetLeft + iframe.offsetParent.clientLeft,10);
                         _self.assistTop = top;
                         _self.assistLeft = left;
-                        console.log("assistTop>>"+top);
-                        console.log("assistLeft>>"+left);
                         // 좌표 계산끝
                         // 영역 선택하기.
                         if($tom.isText(tmpNode.previousSibling.previousSibling)){
