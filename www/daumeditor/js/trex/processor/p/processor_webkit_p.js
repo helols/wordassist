@@ -1,4 +1,0 @@
-
-Trex.I.Processor.WebkitP = {
-
-};

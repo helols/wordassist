@@ -1,9 +1,0 @@
-.tx-horizontalrule a.tx-icon {background-position:-23px -90px;}
-/* horizontalrule */
-.tx-horizontalrule-menu {width:150px;}
-.tx-horizontalrule-menu div.tx-menu-list table { border-collapse:collapse; }
-.tx-horizontalrule-menu div.tx-menu-list td { padding:0; background:#ffffff; height:24px; }
-.tx-horizontalrule-menu div.tx-menu-list td a { float:left; background:#ffffff; }
-.tx-horizontalrule-menu div.tx-menu-list td a:hover { background:#eeeeee;} 
-.tx-horizontalrule-menu div.tx-menu-list td span { display:block; cursor:pointer; }
-.tx-horizontalrule-menu div.tx-menu-list td span img { width:150px; height:24px; }

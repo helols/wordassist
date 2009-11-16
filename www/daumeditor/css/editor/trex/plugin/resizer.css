@@ -1,8 +1,0 @@
-
-/* resize */
-.tx-resize-bar {cursor:row-resize;text-align:center;font-size:0px;line-height:0px;height:16px;}
-.tx-resize-bar img {position:relative;top:-6px; -moz-user-select:none; -khtml-user-select:none; }
-.tx-resize-bar img { cursor:row-resize; margin:0 auto;}
-
-.tx-resize-bar div.tx-resize-bar-bg {background-color:#f9f9f9;font-size:0px;line-height:0px;height:4px;border:1px solid #cdcdcd;border-top:1px solid #eee; }
-* html .tx-resize-bar div.tx-resize-bar-bg {height:6px;}
