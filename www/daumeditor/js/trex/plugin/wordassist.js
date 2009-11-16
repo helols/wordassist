@@ -53,9 +53,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
         // 팝업 div에서 선택했을때 문자열을 가지고 selectspan 문자열 치환.
         var _selectedCallback = function(str){
-            console.log("_selectedCallback>>"+str);
             var selectspan  = $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan');
-            console.log(selectspan);
             if(selectspan != null && selectspan !== undefined && str.length !== 0){
                 selectspan.innerHTML = str;
             }
@@ -108,7 +106,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          */
         var _toggleAssist = function() {
 				if(!isWordassist) {
-                    console.log("ctrl + space!! keydown!! ");
                     isWordassist = true;  // true
                     // 임시 div 삽입
                     this._canvas.execute(function(processor) {
