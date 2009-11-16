@@ -93,7 +93,7 @@ var Assist = function(options) {
    	    str = jQuery.trim(str);  
    	    
         if(element.size() === 0 ) {
-            element = jQuery('#assist');        
+            element = jQuery('#tx_wordassist');
         }
         
         if(isHangul(str)) {
@@ -104,9 +104,10 @@ var Assist = function(options) {
         } else {
             alert("입력값이 없거나, 한글/영어가 혼합되어 있습니다.")
         }
-        
         if(top !== undefined || left !== undefined) {
-            element.css('top', top).css('left', left).html('<img id="ajaxloding" src="./daumeditor/images/deco/loading.gif" />').show();
+            console.log(top);
+            console.log(left)
+            element.css('top', top).css('left', left).html('<img src="images/deco/ajax-loader.gif" />').show();
         }
     };
     
@@ -117,11 +118,11 @@ var Assist = function(options) {
             case 'down' :
                     var selected = jQuery('.assist_select');
                     if(selected.size() === 0) {
-                        jQuery('#assist table tr:first').addClass('assist_select');
+                        jQuery('#tx_wordassist table tr:first').addClass('assist_select');
                     } else {
                     	var next = jQuery('.assist_select').removeClass().next();
                     	if(next.size() === 0) {
-                    	   jQuery('#assist table tr:first').addClass('assist_select');
+                    	   jQuery('#tx_wordassist table tr:first').addClass('assist_select');
                     	} else {
                     	   next.addClass("assist_select");
                     	}
@@ -130,11 +131,11 @@ var Assist = function(options) {
             case 'up' :
                     var selected = jQuery('.assist_select');
                     if(selected.size() === 0) {
-                        jQuery('#assist table tr:last').addClass('assist_select');
+                        jQuery('#tx_wordassist table tr:last').addClass('assist_select');
                     } else {
                         var prev = jQuery('.assist_select').removeClass().prev();
                         if(prev.size() === 0) {
-                           jQuery('#assist table tr:last').addClass('assist_select');
+                           jQuery('#tx_wordassist table tr:last').addClass('assist_select');
                         } else {
                            prev.addClass("assist_select");
                         }
