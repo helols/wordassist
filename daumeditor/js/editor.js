@@ -32,7 +32,7 @@ var DEVELLIBS = [
 	"trex/entryproxy.js",
 	"trex/formproxy.js",
 	"trex/saver.js",
-	
+
 	/** NOTE: Canvas & Panels Start */
 	"trex/history.js",
 	"trex/canvas.js",
@@ -40,7 +40,7 @@ var DEVELLIBS = [
 	"trex/panels/wysiwygpanel.js",
 	"trex/panels/textpanel.js",
 	/** NOTE: Canvas & Panels end */
-		
+
 	/** NOTE: Processor Start */
 	"trex/processor/marker.js",
 	"trex/processor/selection.js",
@@ -62,19 +62,19 @@ var DEVELLIBS = [
 			"trex/processor/br/processor_webkit_br.js",
 	"trex/processor/processor.js",
 	/** NOTE: Processor End */
-	
+
 	/** NOTE: Filter Start */
 	"trex/filters/converting.js",
 	"trex/filters/redundancy.js",
 	/** NOTE: Filter End */
-	
+
 	/** NOTE: Tool Start */
-	"trex/tool/switcher.js", 
-	"trex/tool/switchertoggle.js", 
-	"trex/tool/fontfamily.js", 
-	"trex/tool/fontsize.js", 
-	"trex/tool/bold.js", 
-	"trex/tool/underline.js", 
+	"trex/tool/switcher.js",
+	"trex/tool/switchertoggle.js",
+	"trex/tool/fontfamily.js",
+	"trex/tool/fontsize.js",
+	"trex/tool/bold.js",
+	"trex/tool/underline.js",
 	"trex/tool/italic.js",
 	"trex/tool/strike.js",
 	"trex/tool/forecolor.js",
@@ -103,7 +103,7 @@ var DEVELLIBS = [
 	"trex/tool/advanced.js",
 	"trex/tool/extraButtonDropdown.js",
 	/** NOTE: Tool End */
-	
+
 	/** NOTE: Attacher Start */
 	"trex/attachment.js",
 	"trex/attachbox.js",
@@ -113,13 +113,13 @@ var DEVELLIBS = [
 		"trex/attacher/image.js",
 		"trex/attacher/file.js",
 	/** NOTE: Attacher End */
-	
+
 	/** NOTE: Embeder Start */
 	"trex/embeder.js",
 	"trex/embedentry.js",
 		"trex/embeder/media.js",
 	/** NOTE: Embeder End */
-	
+
 	/** NOTE: Module Start */
 	"trex/modules/mousehandle.js",
 	"trex/modules/canvassize.js",
@@ -127,17 +127,18 @@ var DEVELLIBS = [
 	"trex/modules/block_edit_and_resize.js",
 	"trex/modules/saveimagehistory.js",
 	/** NOTE: Module End */
-	
+
 	/** NOTE: Plugin Start */
 	"trex/plugin/plugin.js",
 		"trex/plugin/fullscreen.js",
-		"trex/plugin/resizer.js",		
+		"trex/plugin/resizer.js",
+        "trex/plugin/wordassist.js",
 	/** NOTE: Plugin End */
 	'' /*dummy*/
 ];
 
 (function() {
-	var _importScript = function(filename) { 
+	var _importScript = function(filename) {
 		if (filename) {
 			document.write('<script type="text/javascript" src="/daumeditor/js/' + filename + "?ver=" + new Date().getTime().toString() + '" charset="utf-8"></s' + 'cript>');
 		}
