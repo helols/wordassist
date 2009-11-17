@@ -1,10 +1,14 @@
 TrexConfig.addTool(
 	"wordassist",
-	{
+    {
 		wysiwygonly: true,
 		status: true
 	}
 );
+
+/*
+ * 추후 toolbar에 assist 관련 옵션 메뉴등록시 사용.
+ */
 Trex.Tool.WordAssist = Trex.Class.create({
 	$const: {
 		__Identity: 'wordassist'
@@ -26,18 +30,19 @@ Trex.Tool.WordAssist = Trex.Class.create({
 	}
 });
 
-TrexConfig.addPlugin('wordassist',{}
-);
+TrexConfig.addPlugin('wordassist',{});
+
 Trex.Plugin.WordAssist = Trex.Class.create({
 	$const: {
 		__Identity: 'wordassist'
 	},
 	$mixins: [
-		Trex.I.JobObservable
+		Trex.I.JobObservable,
+        Trex.I.JSRequester
 	],
-    assistTop:0,
-    assistLeft:0,
-    dataString:null,
+    _assistTop:0,
+    _assistLeft:0,
+    _dataString:null,
     _canvas : null,
 	initialize: function(editor, config) {
         if(!editor) {
@@ -62,7 +67,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         
         var popupDiv = function(){
             eventBind();
-            _assist.start(_self.dataString,_self.assistTop+5, _self.assistLeft+5);  // 팝업열기.
+            _assist.start(_self._dataString,_self._assistTop+5, _self._assistLeft+5);  // 팝업열기.
         }
 
         var eventBind = function(){
@@ -127,8 +132,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                         var ileft = tmpNode.offsetLeft;
                         var top = itop + parseInt(iframe.offsetParent.offsetTop + iframe.offsetParent.clientTop,10);
                         var left = ileft+parseInt(iframe.offsetParent.offsetLeft + iframe.offsetParent.clientLeft,10);
-                        _self.assistTop = top;
-                        _self.assistLeft = left;
+                        _self._assistTop = top;
+                        _self._assistLeft = left;
                         // 좌표 계산끝
                         // 영역 선택하기.
                         if($tom.isText(tmpNode.previousSibling.previousSibling)){
@@ -140,7 +145,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                                     var sliceTextNode = spaceIdx > 0?$tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx):tmpNode.previousSibling.previousSibling;
 
                                     var span = processor.create("span", {id:'selectspan',name:'selectspan'});
-                                    _self.dataString = sliceTextNode.data;
+                                    _self._dataString = sliceTextNode.data;
                                     $tom.insertAt(span, sliceTextNode);
                                     $tom.append(span,sliceTextNode);
                                     popupDiv();
@@ -184,9 +189,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
 
 	},
-    getAssistTop : function(){ return this.assistTop;},
-    getSelText : function(){return this._canvas.getProcessor().getText()},
-    getAssistLeft: function(){return this.assistLeft;},
     close: function(){this.wordAssistExpires();}
 
 });
