@@ -43,18 +43,17 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _assistTop:0,
     _assistLeft:0,
     _dataString:null,
+    _editor:null,
 	initialize: function(editor, config) {
         if(!editor) {
             return;
         }
         var _self = this;
-        var _editor = editor;
+        _self._editor = editor;
         var _canvas = editor.getCanvas();
-        var _processor = _canvas.getProcessor();
         var _initializedId = editor.getInitializedId();
-
-        var _isWordassist = false;
-        var _isWordassistEvent = false;
+        var _isWordassist = false;  //어시스트가 열려 있는지 여부.
+        var _isWordassistEvent = false; //어시스트 관련 KEY EVENT 사용 여부.
 
         // 팝업 div에서 선택했을때 문자열을 가지고 selectspan 문자열 치환.
         var _selectedCallback = function(str){
@@ -66,13 +65,10 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         }.bind(this);
         
         var popupDiv = function(){
-            eventBind();
-            _assist.start(_self._dataString,_self._assistTop+5, _self._assistLeft+5);  // 팝업열기.
+            _isWordassistEvent = true;
+            _assist.start(_self._dataString,_self._assistTop, _self._assistLeft);  // 팝업열기.
         }
 
-        var eventBind = function(){
-           _isWordassistEvent = true;
-        }
         var _assist = new Assist({callback:_selectedCallback});
         var keyEvent = function(ev) { // 상하 이벤트 / 엔터이벤트(결정이벤트)/  좌우 이벤트시 닫기.
             if(_isWordassistEvent){
@@ -101,7 +97,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             }
 		 }
 
-        _canvas_.observeJob(Trex.Ev.__CANVAS_PANEL_KEYDOWN, keyEvent);
+        _canvas.observeJob(Trex.Ev.__CANVAS_PANEL_KEYDOWN, keyEvent);
 
         /**
          * todo
@@ -116,51 +112,29 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 				if(!_isWordassist) {
                     _isWordassist = true;  // true
                     // 임시 div 삽입
-                    this._canvas.execute(function(processor) {
-							var _attributes = {
-                                'id': 'tmpMarking',
-//                                'style' : {display:'inline'}
-                                'style' : {display:'inline'}
-							};
-					        var _aNode = processor.create("span", _attributes);
-					    	processor.pasteNode(_aNode, false);						
-						   // 임시 div 삽입 끝
-                        //좌표 계산.  // 폰트 사이즈 만큼 내려주기.
-                        var iframe = $tx('tx_canvas_wysiwyg');
-                        var tmpNode = iframe.contentDocument.getElementById('tmpMarking');
-                        var itop = tmpNode.offsetTop ;
-                        var ileft = tmpNode.offsetLeft;
-                        var top = itop + parseInt(iframe.offsetParent.offsetTop + iframe.offsetParent.clientTop,10);
-                        var left = ileft+parseInt(iframe.offsetParent.offsetLeft + iframe.offsetParent.clientLeft,10);
-                        _self._assistTop = top;
-                        _self._assistLeft = left;
-                        // 좌표 계산끝
-                        // 영역 선택하기.
-                        if($tom.isText(tmpNode.previousSibling.previousSibling)){
-                            var data = tmpNode.previousSibling.previousSibling.data;
+                    _self.addTmpSpan(_canvas.getProcessor());
+                    //좌표 계산.  // 폰트 사이즈 만큼 내려주기.
+                    var tmpNode = _self.calTmpSpanPosition();
+                    console.log(_self.skipWhiteSpace(tmpNode));
+                    return;
+                    // 영역 선택하기.
+                    if($tom.isText(tmpNode.previousSibling.previousSibling)){
+                        var data = tmpNode.previousSibling.previousSibling.data;
 
-                            if(data.length > 0){
-                                var spaceIdx = data.lastIndexOf(" ")+1;
-                                if(spaceIdx !== data.length){
-                                    var sliceTextNode = spaceIdx > 0?$tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx):tmpNode.previousSibling.previousSibling;
+                        if(data.length > 0){
+                            var spaceIdx = data.lastIndexOf(" ")+1;
+                            if(spaceIdx !== data.length){
+                                var sliceTextNode = spaceIdx > 0?$tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx):tmpNode.previousSibling.previousSibling;
 
-                                    var span = processor.create("span", {id:'selectspan',name:'selectspan'});
-                                    _self._dataString = sliceTextNode.data;
-                                    $tom.insertAt(span, sliceTextNode);
-                                    $tom.append(span,sliceTextNode);
-                                    popupDiv();
-                                }
+                                var span = _canvas.getProcessor().create("span", {id:'selectspan',name:'selectspan'});
+                                _self._dataString = sliceTextNode.data;
+                                $tom.insertAt(span, sliceTextNode);
+                                $tom.append(span,sliceTextNode);
+                                popupDiv();
                             }
-                        } // 영역선택 끝.
-                        $tom.remove(tmpNode); // div 삭제.
-                    });
-
-
-                    // div 삭제.
-                    //  iframe.contentDocument.getElementById('tmpMarking').parentNode.removeChild(iframe.contentDocument.getElementById('tmpMarking'))
-
-                    //openwordassist(top,left,search_str)
-
+                        }
+                    } // 영역선택 끝.
+                    $tom.remove(tmpNode); // div 삭제.
 				}else{
                     _wordAssistExpires(); 
                     _assist.close(); // pup닫기.
@@ -177,7 +151,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             var selectspan =  $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan')
             if(selectspan != null)$tom.unwrap(selectspan);
         }.bind(this);
-        _canvas_.observeJob(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN, function(){
+        _canvas.observeJob(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN, function(){
             if(_isWordassist){
                 _wordAssistExpires;
                 _assist.close();
@@ -192,21 +166,46 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     /**
     * position을 위한 temp span add
     */
-    addTmpSpan : function(){
-        
+    addTmpSpan : function(processor){
+        var _attributes = {'id': 'tmpMarking'	};
+        var _aNode = processor.create("span", _attributes);
+		processor.pasteNode(_aNode, false);
     },
 
     /**
     * temp span 의 position 계산하기.
     */
     calTmpSpanPosition : function(){
+        var _self = this;
+        var iframe = $tx('tx_canvas_wysiwyg');
+        var tmpNode = iframe.contentDocument.getElementById('tmpMarking');
+        var itop = tmpNode.offsetTop ;
+        var ileft = tmpNode.offsetLeft;
+        var top = itop + parseInt(iframe.offsetParent.offsetTop + iframe.offsetParent.clientTop,10)+5; // +5
+        var left = ileft+parseInt(iframe.offsetParent.offsetLeft + iframe.offsetParent.clientLeft,10)+5; //+5
+        this._assistTop = top;
+        this._assistLeft = left;
+        console.log('_assistTop>>'+_self._assistTop);
+        console.log("_assistLeft>>"+_self._assistLeft);
+        return tmpNode;
+    },
 
+    skipWhiteSpace : function(node){
+        if(node.previousSibling != null){
+            if(node.previousSibling.isElementContentWhitespace){
+                return this.skipWhiteSpace(node.previousSibling);
+            }else{
+                return node.previousSibling;
+            }
+        }else{
+            return null;
+        }
     },
 
     /**
     * 선택되어야 하는 TextNode 정하기.
     */
-    selectedTextNode : function(){
+    selectedTextNode : function(tmpNode){
 
     },
 
@@ -217,12 +216,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
     },
 
-    /**
-    * pop 띄우기.
-    */
-    openPopupLayer : function(){
-
-    },
     /**
      * PopupLayer close after callback
      */
@@ -254,7 +247,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
      * replace selectedData
      */
     replaceData : function(){
-        
     }
 });
 
