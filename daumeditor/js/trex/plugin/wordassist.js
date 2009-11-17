@@ -43,18 +43,18 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _assistTop:0,
     _assistLeft:0,
     _dataString:null,
-    _canvas : null,
 	initialize: function(editor, config) {
         if(!editor) {
             return;
         }
-        var _self = this; 
+        var _self = this;
         var _editor = editor;
-        var isWordassist = false;
-        var isWordassistEvent = false;
-		var _initializedId = editor.getInitializedId();
-        this._canvas = editor.getCanvas();
-        var _canvas_ = this._canvas;
+        var _canvas = editor.getCanvas();
+        var _processor = _canvas.getProcessor();
+        var _initializedId = editor.getInitializedId();
+
+        var _isWordassist = false;
+        var _isWordassistEvent = false;
 
         // 팝업 div에서 선택했을때 문자열을 가지고 selectspan 문자열 치환.
         var _selectedCallback = function(str){
@@ -71,11 +71,11 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         }
 
         var eventBind = function(){
-           isWordassistEvent = true;
+           _isWordassistEvent = true;
         }
         var _assist = new Assist({callback:_selectedCallback});
         var keyEvent = function(ev) { // 상하 이벤트 / 엔터이벤트(결정이벤트)/  좌우 이벤트시 닫기.
-            if(isWordassistEvent){
+            if(_isWordassistEvent){
                 switch(ev.keyCode){
                     case $tx.KEY_DOWN :
                     case $tx.KEY_UP :
@@ -113,8 +113,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * 6.자동저장시.. span 지워주는.. 거시기 .. ;; 만들어줌.
          */
         var _toggleAssist = function() {
-				if(!isWordassist) {
-                    isWordassist = true;  // true
+				if(!_isWordassist) {
+                    _isWordassist = true;  // true
                     // 임시 div 삽입
                     this._canvas.execute(function(processor) {
 							var _attributes = {
@@ -164,12 +164,12 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 				}else{
                     _wordAssistExpires(); 
                     _assist.close(); // pup닫기.
-                    isWordassist = false;
+                    _isWordassist = false;
                 }
 			}.bind(this);
         var _wordAssistExpires = function(){
-            isWordassistEvent = false;
-            isWordassist = false;
+            _isWordassistEvent = false;
+            _isWordassist = false;
             var tmpNode = $tx('tx_canvas_wysiwyg').contentDocument.getElementById('tmpMarking');
             if(tmpNode !== null || tmpNode !== undefined){
                 $tom.remove(tmpNode);
@@ -178,7 +178,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             if(selectspan != null)$tom.unwrap(selectspan);
         }.bind(this);
         _canvas_.observeJob(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN, function(){
-            if(isWordassist){
+            if(_isWordassist){
                 _wordAssistExpires;
                 _assist.close();
             }
@@ -189,6 +189,75 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
 
 	},
-    close: function(){this.wordAssistExpires();}
+    /**
+    * position을 위한 temp span add
+    */
+    addTmpSpan : function(){
+        
+    },
 
+    /**
+    * temp span 의 position 계산하기.
+    */
+    calTmpSpanPosition : function(){
+
+    },
+
+    /**
+    * 선택되어야 하는 TextNode 정하기.
+    */
+    selectedTextNode : function(){
+
+    },
+
+    /**
+    * pop 띄우기.
+    */
+    openPopupLayer : function(){
+
+    },
+
+    /**
+    * pop 띄우기.
+    */
+    openPopupLayer : function(){
+
+    },
+    /**
+     * PopupLayer close after callback
+     */
+    closeAfterCallback: function(){
+    //    this.wordAssistExpires();
+    },
+
+    /**
+     * toggle keydown event(Ctr + space)
+     */
+    toggleKeyDownEvent : function(fnc){
+    },
+
+    /**
+     * toggle mouseDown event (popupLayer close.)
+     */
+    toggleMouseDownEvent : function(fnc){
+
+    },
+
+    /**
+     * selected span remove.
+     */
+    removeSelectedSpan : function(){
+
+    },
+
+    /**
+     * replace selectedData
+     */
+    replaceData : function(){
+        
+    }
 });
+
+Trex.Plugin.WordAssist.PopupLayer = {
+    
+}
