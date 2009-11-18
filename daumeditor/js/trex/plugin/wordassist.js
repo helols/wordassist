@@ -44,10 +44,10 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _assistLeft:0,
     _dataString:null,
     _editor:null,
+    _selectedNode :[],
 	initialize: function(editor, config) {
         if(!editor) {return;}
         var _self = this;
-
         _self._editor = editor;
         var _canvas = editor.getCanvas();
         var _initializedId = editor.getInitializedId();
@@ -56,16 +56,18 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
         // 팝업 div에서 선택했을때 문자열을 가지고 selectspan 문자열 치환.
         var _selectedCallback = function(str){
-            var selectspan  = $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan');
-            if(selectspan != null && selectspan !== undefined && str.length !== 0){
-                selectspan.innerHTML = str;
+            if(_self._selectedNode.length == 1){
+                var node = _self._selectedNode.splice(0,1);
+                var _pNode = node._pNode;
+                if(_pNode != null){
+                    _pNode.parentNode.removeChild(node._sNode);
+                    _pNode.insertData(node.offset,str);
+                }
             }
-            _wordAssistExpires(); // 키이벤트 없애고 ... 팝업닫고.
         }.bind(this);
         
         var popupDiv = function(){
-            _isWordassistEvent = true;
-            _assist.start(_self._dataString,_self._assistTop, _self._assistLeft);  // 팝업열기.
+            _assist.start('scho',_self._assistTop, _self._assistLeft);  // 팝업열기.
         }
 
         var _assist = new Assist({callback:_selectedCallback});
@@ -93,6 +95,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 if(prevTmpNode !== null){
                     _self.selectedTextNode(prevTmpNode);
                 }
+                popupDiv();
                 //$tom.remove(tmpNode); // div 삭제.
 			}else{
 //                    _wordAssistExpires();
@@ -235,8 +238,11 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var processor = this.getCurrentProcessor();
 
         if(prevTmpNode.nodeType == 3){ //textNode 일때.
-            var data = prevTmpNode.nodeValue;
-            console.log('>>'+data+'<<');
+            var offset = prevTmpNode.nodeValue.lastIndexOf(' ')+1;
+            var _sNode = $tom.divideText(prevTmpNode,offset);
+            this._selectedNode.push({_sNode:_sNode,offset:offset,_pNode:_sNode.previousSibling});
+            console.log(this._selectedNode);
+
         }else if(prevTmpNode.nodeType == 1){
 
         }else{
@@ -244,13 +250,14 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         }
 
 
-        var sliceTextNode = $tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx);
-        var span = processor.create("span", {id:'selectspan',name:'selectspan'});
-        //             _self._dataString = sliceTextNode.data;
-        $tom.insertAt(span, sliceTextNode);
-        $tom.append(span,sliceTextNode);
+//        var sliceTextNode = $tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx);
+//        var span = processor.create("span", {id:'selectspan',name:'selectspan'});
+//        //             _self._dataString = sliceTextNode.data;
+//        $tom.insertAt(span, sliceTextNode);
+//        $tom.append(span,sliceTextNode);
     },
 
+    
     /**
     * pop 띄우기.
     */
