@@ -45,14 +45,13 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _dataString:null,
     _editor:null,
 	initialize: function(editor, config) {
-        if(!editor) {
-            return;
-        }
+        if(!editor) {return;}
         var _self = this;
+
         _self._editor = editor;
         var _canvas = editor.getCanvas();
         var _initializedId = editor.getInitializedId();
-        var _isWordassist = false;  //어시스트가 열려 있는지 여부.
+        var _isWordassist = false;  // 어시스트가 열려 있는지 여부. 
         var _isWordassistEvent = false; //어시스트 관련 KEY EVENT 사용 여부.
 
         // 팝업 div에서 선택했을때 문자열을 가지고 selectspan 문자열 치환.
@@ -108,37 +107,31 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * 5.팝업 사라질때 콜백호출해주기. span영역.. 다시 해제시키기.
          * 6.자동저장시.. span 지워주는.. 거시기 .. ;; 만들어줌.
          */
+        var t = null;
         var _toggleAssist = function() {
-				if(!_isWordassist) {
-                    _isWordassist = true;  // true
-                    // 임시 div 삽입
-                    _self.addTmpSpan(_canvas.getProcessor());
-                    //좌표 계산.  // 폰트 사이즈 만큼 내려주기.
-                    var tmpNode = _self.calTmpSpanPosition();
-                    console.log(_self.skipWhiteSpace(tmpNode));
-                    return;
-                    // 영역 선택하기.
-                    if($tom.isText(tmpNode.previousSibling.previousSibling)){
-                        var data = tmpNode.previousSibling.previousSibling.data;
+            if(!_isWordassist) {
+                _isWordassist = true;
+                var tmpNode = _self.addTmpSpan(); // 임시 div 삽입
+                 _self.calTmpSpanPosition(tmpNode); //좌표 계산.폰트 사이즈 만큼 내려주기.
+                t = tmpNode;
+                var prevTmpNode = _self.skipWhiteSpace(tmpNode);
 
-                        if(data.length > 0){
-                            var spaceIdx = data.lastIndexOf(" ")+1;
-                            if(spaceIdx !== data.length){
-                                var sliceTextNode = spaceIdx > 0?$tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx):tmpNode.previousSibling.previousSibling;
-
-                                var span = _canvas.getProcessor().create("span", {id:'selectspan',name:'selectspan'});
-                                _self._dataString = sliceTextNode.data;
-                                $tom.insertAt(span, sliceTextNode);
-                                $tom.append(span,sliceTextNode);
-                                popupDiv();
-                            }
-                        }
-                    } // 영역선택 끝.
-                    $tom.remove(tmpNode); // div 삭제.
-				}else{
-                    _wordAssistExpires(); 
-                    _assist.close(); // pup닫기.
-                    _isWordassist = false;
+//                console.log(prevTmpNode);
+                if(prevTmpNode !== null && prevTmpNode.textContent.trim().length > 0){
+                    var data = prevTmpNode.textContent;
+                    console.log('>>'+data+'<<');
+                    var spaceIdx = data.lastIndexOf(" ")+1;
+                    if(spaceIdx !== data.length){
+                      //  _self.selectedTextNode(prevTmpNode);
+                    }
+                }
+                //$tom.remove(tmpNode); // div 삭제.
+			}else{
+//                    _wordAssistExpires();
+//                    _assist.close(); // pup닫기.
+//                t.parent.childNodes
+                $tom.remove(t); // div 삭제.
+                _isWordassist = false;
                 }
 			}.bind(this);
         var _wordAssistExpires = function(){
@@ -151,34 +144,58 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             var selectspan =  $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan')
             if(selectspan != null)$tom.unwrap(selectspan);
         }.bind(this);
-        _canvas.observeJob(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN, function(){
-            if(_isWordassist){
-                _wordAssistExpires;
-                _assist.close();
-            }
-        });
+//        _canvas.observeJob(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN, function(){
+//            if(_isWordassist){
+//                _wordAssistExpires;
+//                _assist.close();
+//            }
+//        });
         this.execute = _toggleAssist;
         this.wordAssistExpires = _wordAssistExpires;
         this.selectedCallback = _selectedCallback;
 
 
 	},
+    getCurrentProcessor: function(){
+        return this._editor.getCanvas().getProcessor();  
+    },
+    getCurrentDoc: function(){
+        return this.getCurrentProcessor().doc;  
+    },
     /**
     * position을 위한 temp span add
     */
-    addTmpSpan : function(processor){
+    addTmpSpan : function(){
+        var processor = this.getCurrentProcessor();
         var _attributes = {'id': 'tmpMarking'	};
         var _aNode = processor.create("span", _attributes);
-		processor.pasteNode(_aNode, false);
+        return this.purePasteNode(_aNode);
+    },
+
+    purePasteNode:function(node){
+        var _rng = this.getCurrentProcessor().getRange();
+		var _endContainer = _rng.endContainer;
+		var _endOffset = _rng.endOffset;
+		if (_endContainer.nodeType == 3) {
+            if(_endContainer.textContent.lastIndexOf(" ")+1 != _endContainer.textContent.length){
+                _endContainer.splitText(_endOffset);
+                _endContainer.parentNode.insertBefore(node, _endContainer.nextSibling);
+            }else{
+                return null;
+            }
+
+		} else {
+			_endContainer.insertBefore(node, _endContainer.childNodes[_endOffset]);
+		}
+        return node;
     },
 
     /**
     * temp span 의 position 계산하기.
     */
-    calTmpSpanPosition : function(){
+    calTmpSpanPosition : function(tmpNode){
         var _self = this;
         var iframe = $tx('tx_canvas_wysiwyg');
-        var tmpNode = iframe.contentDocument.getElementById('tmpMarking');
         var itop = tmpNode.offsetTop ;
         var ileft = tmpNode.offsetLeft;
         var top = itop + parseInt(iframe.offsetParent.offsetTop + iframe.offsetParent.clientTop,10)+5; // +5
@@ -187,7 +204,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         this._assistLeft = left;
         console.log('_assistTop>>'+_self._assistTop);
         console.log("_assistLeft>>"+_self._assistLeft);
-        return tmpNode;
     },
 
     skipWhiteSpace : function(node){
@@ -205,15 +221,20 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     /**
     * 선택되어야 하는 TextNode 정하기.
     */
-    selectedTextNode : function(tmpNode){
-
+    selectedTextNode : function(){
+        var processor = this.getCurrentProcessor();
+        var sliceTextNode = $tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx);
+        var span = processor.create("span", {id:'selectspan',name:'selectspan'});
+        //             _self._dataString = sliceTextNode.data;
+        $tom.insertAt(span, sliceTextNode);
+        $tom.append(span,sliceTextNode);
     },
 
     /**
     * pop 띄우기.
     */
     openPopupLayer : function(){
-
+        //this.popupDiv();
     },
 
     /**
