@@ -69,35 +69,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         }
 
         var _assist = new Assist({callback:_selectedCallback});
-        var keyEvent = function(ev) { // 상하 이벤트 / 엔터이벤트(결정이벤트)/  좌우 이벤트시 닫기.
-            if(_isWordassistEvent){
-                switch(ev.keyCode){
-                    case $tx.KEY_DOWN :
-                    case $tx.KEY_UP :
-                    case $tx.KEY_RETURN :
-                        if($tx.KEY_UP === ev.keyCode){
-                            _assist.keyEventProcess("up");
-                        }
-                        else if($tx.KEY_DOWN === ev.keyCode){
-                            _assist.keyEventProcess("down");
-                        }
-                        else if($tx.KEY_RETURN === ev.keyCode){
-                            _assist.keyEventProcess("enter");
-                        }
-                        $tx.stop(ev);
-                        break;
-                    case $tx.KEY_LEFT :
-                    case $tx.KEY_RIGHT :
-                    case $tx.KEY_ESC:
-                          _assist.close();
-                         _wordAssistExpires();
-                        break;
-                }
-            }
-		 }
-
-        _canvas.observeJob(Trex.Ev.__CANVAS_PANEL_KEYDOWN, keyEvent);
-
         /**
          * todo
          * 1.포커스에 div 넣기. 포커스 계산후에 바로 삭제. - 완료.
@@ -112,18 +83,15 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             if(!_isWordassist) {
                 _isWordassist = true;
                 var tmpNode = _self.addTmpSpan(); // 임시 div 삽입
-                 _self.calTmpSpanPosition(tmpNode); //좌표 계산.폰트 사이즈 만큼 내려주기.
                 t = tmpNode;
+                if(tmpNode === null){
+                    console.log('tmpNode null!!');
+                    return ; // 끝내는곳 호출하기
+                }
+                _self.calTmpSpanPosition(tmpNode); //좌표 계산.폰트 사이즈 만큼 내려주기.
                 var prevTmpNode = _self.skipWhiteSpace(tmpNode);
-
-//                console.log(prevTmpNode);
-                if(prevTmpNode !== null && prevTmpNode.textContent.trim().length > 0){
-                    var data = prevTmpNode.textContent;
-                    console.log('>>'+data+'<<');
-                    var spaceIdx = data.lastIndexOf(" ")+1;
-                    if(spaceIdx !== data.length){
-                      //  _self.selectedTextNode(prevTmpNode);
-                    }
+                if(prevTmpNode !== null){
+                    _self.selectedTextNode(prevTmpNode);
                 }
                 //$tom.remove(tmpNode); // div 삭제.
 			}else{
@@ -131,6 +99,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 //                    _assist.close(); // pup닫기.
 //                t.parent.childNodes
                 $tom.remove(t); // div 삭제.
+                this.toggleKeyDownEvent(true);
                 _isWordassist = false;
                 }
 			}.bind(this);
@@ -156,9 +125,17 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
 
 	},
+
+    /**
+     * 현재 canvas에 processor을 가져옴.
+     */
     getCurrentProcessor: function(){
         return this._editor.getCanvas().getProcessor();  
     },
+
+    /**
+     * 현재 panel에 doc를 가져옴.
+     */
     getCurrentDoc: function(){
         return this.getCurrentProcessor().doc;  
     },
@@ -172,24 +149,46 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         return this.purePasteNode(_aNode);
     },
 
+    /**
+     * marker 없이 순수 node만 endNode에 추가 시킨다.
+     * @param node 추가시킬 노드.
+     */
     purePasteNode:function(node){
         var _rng = this.getCurrentProcessor().getRange();
 		var _endContainer = _rng.endContainer;
 		var _endOffset = _rng.endOffset;
-		if (_endContainer.nodeType == 3) {
-            if(_endContainer.textContent.lastIndexOf(" ")+1 != _endContainer.textContent.length){
+		console.log(_endContainer);
+        if (_endContainer.nodeType == 3) {
+            console.log("parentNode.insertBefore");
+            console.log(_endContainer);
+            console.log(this.isPassableNode(_endContainer.textContent));
+            if(this.isPassableNode(_endContainer.textContent)){
                 _endContainer.splitText(_endOffset);
                 _endContainer.parentNode.insertBefore(node, _endContainer.nextSibling);
             }else{
                 return null;
             }
-
 		} else {
-			_endContainer.insertBefore(node, _endContainer.childNodes[_endOffset]);
+            console.log("insertBefore");
+            console.log(this.isPassableNode(beforeNode.textContent));
+            var beforeNode = this.skipWhiteSpace(_endContainer.childNodes[_endOffset]); //이렇게 처리 하는 이유는 whitespace 뒤에 tmpspan을 붙이지 않으려구.. ;;
+            if(beforeNode !== null && this.isPassableNode(beforeNode.textContent)){
+                _endContainer.insertBefore(node, _endContainer.childNodes[_endOffset]);
+            }else{
+                return null;
+            }
 		}
         return node;
     },
 
+    /**
+     * 공백으로 시작 하거나 whiteSpace node 일경우 체크람. ( 둘다 아닌경우에만 통과함.)
+     * refactoring... 
+     * @param str
+     */
+    isPassableNode : function(str){
+      return (str.trim() != 0 && str.lastIndexOf(" ")+1 !== str.length)
+    },
     /**
     * temp span 의 position 계산하기.
     */
@@ -206,23 +205,45 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         console.log("_assistLeft>>"+_self._assistLeft);
     },
 
+    /**
+     * whiteSpace skip 후 node 반환.
+     * @param node
+     */
     skipWhiteSpace : function(node){
-        if(node.previousSibling != null){
+        if(node.previousSibling !== null){
             if(node.previousSibling.isElementContentWhitespace){
                 return this.skipWhiteSpace(node.previousSibling);
             }else{
                 return node.previousSibling;
             }
         }else{
-            return null;
+            if(node.isElementContentWhitespace){
+                return null;
+            }else{
+                return node;
+            }
+
         }
     },
 
     /**
     * 선택되어야 하는 TextNode 정하기.
     */
-    selectedTextNode : function(){
+    selectedTextNode : function(prevTmpNode){
+        console.log("selectedTextNode");
+        console.log(prevTmpNode);
         var processor = this.getCurrentProcessor();
+
+        if(prevTmpNode.nodeType == 3){ //textNode 일때.
+            var data = prevTmpNode.nodeValue;
+            console.log('>>'+data+'<<');
+        }else if(prevTmpNode.nodeType == 1){
+
+        }else{
+            return; // 끝내는곳 불러주기.
+        }
+
+
         var sliceTextNode = $tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx);
         var span = processor.create("span", {id:'selectspan',name:'selectspan'});
         //             _self._dataString = sliceTextNode.data;
@@ -234,6 +255,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     * pop 띄우기.
     */
     openPopupLayer : function(){
+//        this.toggleKeyDownEvent();
         //this.popupDiv();
     },
 
@@ -245,16 +267,35 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     },
 
     /**
-     * toggle keydown event(Ctr + space)
+     * toggle keydown event
      */
-    toggleKeyDownEvent : function(fnc){
+    toggleKeyDownEvent : function(isExpire){
+        this.toggleEvent(Trex.Ev.__CANVAS_PANEL_KEYDOWN,this.pupupOpenAfterKeyDownEvent,isExpire);
     },
 
     /**
      * toggle mouseDown event (popupLayer close.)
      */
-    toggleMouseDownEvent : function(fnc){
+    toggleMouseDownEvent : function(isExpire){
+        this.toggleEvent(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN,this.pupupOpenAfterKeyDownEvent,isExpire);
+    },
 
+    /**
+     * common toggleEvent . jobObservers push & remove!!
+     * 불필요한 이벤트를 방지하기 위한.! 
+     * @param evName
+     * @param ev
+     * @param isExprie
+     */
+    toggleEvent : function(evName, ev, isExprie){
+        if(isExprie === undefined) isExprie = false;
+        var _canvas = this._editor.getCanvas();
+        var idx = _canvas.jobObservers[evName] === undefined ?-1:_canvas.jobObservers[evName].indexOf(ev);
+        if(idx != -1  && (idx != -1 || isExprie)){
+            _canvas.jobObservers[evName].splice(idx,1);
+        }else if(!isExprie){
+            _canvas.observeJob(evName, ev);
+        }
     },
 
     /**
@@ -263,12 +304,43 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     removeSelectedSpan : function(){
 
     },
-
     /**
      * replace selectedData
      */
     replaceData : function(){
+    },
+
+    /**
+     * popup Layer control 하기 위한 keyEvent!!
+     * 상하 이벤트 / 엔터이벤트(결정이벤트)/  좌우 이벤트시 닫기... etc... 
+     * @param ev
+     */
+    pupupOpenAfterKeyDownEvent : function(ev) {
+        switch(ev.keyCode){
+            case $tx.KEY_DOWN :
+            case $tx.KEY_UP :
+            case $tx.KEY_RETURN :
+                if($tx.KEY_UP === ev.keyCode){
+                    //_assist.keyEventProcess("up");
+                }
+                else if($tx.KEY_DOWN === ev.keyCode){
+                    //_assist.keyEventProcess("down");
+                }
+                else if($tx.KEY_RETURN === ev.keyCode){
+                    //_assist.keyEventProcess("enter");
+                }
+                $tx.stop(ev);
+                break;
+            case $tx.KEY_LEFT :
+            case $tx.KEY_RIGHT :
+            case $tx.KEY_ESC:
+                    alert('ddd');
+//                  _assist.close();
+//                 _wordAssistExpires();
+                break;
+        }
     }
+
 });
 
 Trex.Plugin.WordAssist.PopupLayer = {
