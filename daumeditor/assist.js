@@ -164,7 +164,7 @@ var Assist = function(options) {
         if(isCallCallBackFunc) {
         	callback(str);
         }
-        Editor.getPlugin("wordassist").close();
+//        Editor.getPlugin("wordassist").close();
     };
     
     this.callbackTest = callback;

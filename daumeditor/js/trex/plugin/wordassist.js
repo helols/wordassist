@@ -56,12 +56,19 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
         // 팝업 div에서 선택했을때 문자열을 가지고 selectspan 문자열 치환.
         var _selectedCallback = function(str){
+            console.log('str>>'+str);
             if(_self._selectedNode.length == 1){
                 var node = _self._selectedNode.splice(0,1);
+                console.log(node);
+                console.log(node._pNode);
                 var _pNode = node._pNode;
-                if(_pNode != null){
+                console.log(_pNode);
+                if(_pNode !== undefined){
                     _pNode.parentNode.removeChild(node._sNode);
                     _pNode.insertData(node.offset,str);
+                }else{
+//                    node._sNode.insertData
+                    console.log('ddd');
                 }
             }
         }.bind(this);
@@ -110,7 +117,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             _isWordassistEvent = false;
             _isWordassist = false;
             var tmpNode = $tx('tx_canvas_wysiwyg').contentDocument.getElementById('tmpMarking');
-            if(tmpNode !== null || tmpNode !== undefined){
+            if(tmpNode !== undefined && tmpNode !== null){
                 $tom.remove(tmpNode);
             }
             var selectspan =  $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan')
@@ -235,11 +242,14 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     selectedTextNode : function(prevTmpNode){
         console.log("selectedTextNode");
         console.log(prevTmpNode);
-        var processor = this.getCurrentProcessor();
-
         if(prevTmpNode.nodeType == 3){ //textNode 일때.
+            var reg = new RegExp('/\s/','ig');
+            var a = reg.exec(prevTmpNode.nodeValue);
+            console.log("reg");
+
             var offset = prevTmpNode.nodeValue.lastIndexOf(' ')+1;
             var _sNode = $tom.divideText(prevTmpNode,offset);
+            console.log(_sNode);
             this._selectedNode.push({_sNode:_sNode,offset:offset,_pNode:_sNode.previousSibling});
             console.log(this._selectedNode);
 
@@ -248,13 +258,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         }else{
             return; // 끝내는곳 불러주기.
         }
-
-
-//        var sliceTextNode = $tom.divideText(tmpNode.previousSibling.previousSibling,spaceIdx);
-//        var span = processor.create("span", {id:'selectspan',name:'selectspan'});
-//        //             _self._dataString = sliceTextNode.data;
-//        $tom.insertAt(span, sliceTextNode);
-//        $tom.append(span,sliceTextNode);
     },
 
     
