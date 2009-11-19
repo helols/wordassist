@@ -19,6 +19,7 @@ Trex.Tool.WordAssist = Trex.Class.create({
 
 		var _toolHandler = function() {
 			_editor.getPlugin("wordassist").execute();
+            console.log(_editor.getPlugin("wordassist"));
 		};
 
 		this.canvas.observeKey({ // ctrl + space - wordassist
@@ -37,110 +38,56 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 		__Identity: 'wordassist'
 	},
 	$mixins: [
-		Trex.I.JobObservable,
-        Trex.I.JSRequester
+		Trex.I.JobObservable
 	],
-    _assistTop:0,
-    _assistLeft:0,
-    _dataString:null,
-    _editor:null,
+    _assistTop : 0,
+    _assistLeft : 0,
+    _editor : null,
     _selectedNode :[],
+    _popupLayer : null,
+    _isWordassist : null,
+    _canvas : null,
 	initialize: function(editor, config) {
         if(!editor) {return;}
         var _self = this;
         _self._editor = editor;
-        var _canvas = editor.getCanvas();
-        var _initializedId = editor.getInitializedId();
-        var _isWordassist = false;  // 어시스트가 열려 있는지 여부. 
-        var _isWordassistEvent = false; //어시스트 관련 KEY EVENT 사용 여부.
-
-        // 팝업 div에서 선택했을때 문자열을 가지고 selectspan 문자열 치환.
-        var _selectedCallback = function(str){
-            console.log('str>>'+str);
-            if(_self._selectedNode.length == 1){
-                var node = _self._selectedNode.splice(0,1);
-                console.log(node);
-                console.log(node._pNode);
-                var _pNode = node._pNode;
-                console.log(_pNode);
-                if(_pNode !== undefined){
-                    _pNode.parentNode.removeChild(node._sNode);
-                    _pNode.insertData(node.offset,str);
-                }else{
-//                    node._sNode.insertData
-                    console.log('ddd');
-                }
-            }
-        }.bind(this);
-        
-        var popupDiv = function(){
-            _assist.start('scho',_self._assistTop, _self._assistLeft);  // 팝업열기.
-        }
-
-        var _assist = new Assist({callback:_selectedCallback});
-        /**
-         * todo
-         * 1.포커스에 div 넣기. 포커스 계산후에 바로 삭제. - 완료.
-         * 2.선택영역만들어서 span으로 감싸기.  완료
-         * 3.span에 keydown 이벤트 주기 . (키업/키다운 주기. 그외 키입력시 검색 불러주기.) 완료
-         * 4.선택영역 팝업 text 로 넣어주기.
-         * 5.팝업 사라질때 콜백호출해주기. span영역.. 다시 해제시키기.
-         * 6.자동저장시.. span 지워주는.. 거시기 .. ;; 만들어줌.
-         */
-        var t = null;
-        var _toggleAssist = function() {
-            if(!_isWordassist) {
-                _isWordassist = true;
-                var tmpNode = _self.addTmpSpan(); // 임시 div 삽입
-                t = tmpNode;
-                if(tmpNode === null){
-                    console.log('tmpNode null!!');
-                    return ; // 끝내는곳 호출하기
-                }
-                _self.calTmpSpanPosition(tmpNode); //좌표 계산.폰트 사이즈 만큼 내려주기.
-                var prevTmpNode = _self.skipWhiteSpace(tmpNode);
-                if(prevTmpNode !== null){
-                    _self.selectedTextNode(prevTmpNode);
-                }
-                popupDiv();
-                //$tom.remove(tmpNode); // div 삭제.
-			}else{
-//                    _wordAssistExpires();
-//                    _assist.close(); // pup닫기.
-//                t.parent.childNodes
-                $tom.remove(t); // div 삭제.
-                this.toggleKeyDownEvent(true);
-                _isWordassist = false;
-                }
-			}.bind(this);
-        var _wordAssistExpires = function(){
-            _isWordassistEvent = false;
-            _isWordassist = false;
-            var tmpNode = $tx('tx_canvas_wysiwyg').contentDocument.getElementById('tmpMarking');
-            if(tmpNode !== undefined && tmpNode !== null){
-                $tom.remove(tmpNode);
-            }
-            var selectspan =  $tx('tx_canvas_wysiwyg').contentDocument.getElementById('selectspan')
-            if(selectspan != null)$tom.unwrap(selectspan);
-        }.bind(this);
-//        _canvas.observeJob(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN, function(){
-//            if(_isWordassist){
-//                _wordAssistExpires;
-//                _assist.close();
-//            }
-//        });
-        this.execute = _toggleAssist;
-        this.wordAssistExpires = _wordAssistExpires;
-        this.selectedCallback = _selectedCallback;
-
-
+        _self._canvas  = editor.getCanvas();
+        _self._popupLayer = new Trex.Plugin.WordAssist.PopupLayer(this);
+        this.execute = this.assistExecute;
 	},
+
+    assistExecute : function(){
+        var _self = this;
+        var t = null;  // 임시.
+        if(!_self._isWordassist) {
+            _self._isWordassist = true;
+            var tmpNode = _self.addTmpSpan(); // 임시 div 삽입
+            t = tmpNode;
+            if(tmpNode === null){
+                console.log('tmpNode null!!');
+                return ; // 끝내는곳 호출하기
+            }
+            _self.calTmpSpanPosition(tmpNode); //좌표 계산.폰트 사이즈 만큼 내려주기.
+
+            var prevTmpNode = _self.skipWhiteSpace(tmpNode);
+            if(prevTmpNode !== null){
+                _self.selectedTextNode(prevTmpNode);
+            }
+
+    //                _self.openPopupLayer();
+            //$tom.remove(tmpNode); // div 삭제.
+        }else{
+            $tom.remove(t); // div 삭제.
+            this.toggleKeyDownEvent(true);
+            _self._isWordassist = false;
+        }
+    },
 
     /**
      * 현재 canvas에 processor을 가져옴.
      */
     getCurrentProcessor: function(){
-        return this._editor.getCanvas().getProcessor();  
+        return this._canvas.getProcessor();  
     },
 
     /**
@@ -243,13 +190,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         console.log("selectedTextNode");
         console.log(prevTmpNode);
         if(prevTmpNode.nodeType == 3){ //textNode 일때.
-            var reg = new RegExp('/\s/','ig');
-            var a = reg.exec(prevTmpNode.nodeValue);
-            console.log("reg");
-
-            var offset = prevTmpNode.nodeValue.lastIndexOf(' ')+1;
+            var offset = prevTmpNode.nodeValue.replace(/\s/g,' ').lastIndexOf(' ')+1;
             var _sNode = $tom.divideText(prevTmpNode,offset);
-            console.log(_sNode);
             this._selectedNode.push({_sNode:_sNode,offset:offset,_pNode:_sNode.previousSibling});
             console.log(this._selectedNode);
 
@@ -266,7 +208,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     */
     openPopupLayer : function(){
 //        this.toggleKeyDownEvent();
-        //this.popupDiv();
+        this._popupLayer.searchWord('scho');  // 팝업열기.
     },
 
     /**
@@ -301,23 +243,32 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         if(isExprie === undefined) isExprie = false;
         var _canvas = this._editor.getCanvas();
         var idx = _canvas.jobObservers[evName] === undefined ?-1:_canvas.jobObservers[evName].indexOf(ev);
+        _canvas.jobObservers[evName].splice(idx,1);
         if(idx != -1  && (idx != -1 || isExprie)){
-            _canvas.jobObservers[evName].splice(idx,1);
         }else if(!isExprie){
             _canvas.observeJob(evName, ev);
         }
     },
 
     /**
-     * selected span remove.
-     */
-    removeSelectedSpan : function(){
-
-    },
-    /**
      * replace selectedData
      */
-    replaceData : function(){
+    replaceData : function(str){
+        console.log('str>>'+str);
+        if(_self._selectedNode.length == 1){
+            var node = _self._selectedNode.splice(0,1);
+            console.log(node);
+            console.log(node._pNode);
+            var _pNode = node._pNode;
+            console.log(_pNode);
+            if(_pNode !== undefined){
+                _pNode.parentNode.removeChild(node._sNode);
+                _pNode.insertData(node.offset,str);
+            }else{
+//                    node._sNode.insertData
+                console.log('ddd');
+            }
+        }
     },
 
     /**
@@ -350,9 +301,97 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 break;
         }
     }
-
 });
 
-Trex.Plugin.WordAssist.PopupLayer = {
+Trex.Plugin.WordAssist.PopupLayer = Trex.Class.create({
+	$mixins: [
+        Trex.I.JSRequester
+	],
+    _wordassist : null,
+    initialize: function(wordassist){
+        this._wordassist = wordassist;
+    },
+    keyEventProcess : function(action) {
+//        switch(action.toLowerCase()){
+//            case 'down' :
+//                var selected = jQuery('.assist_select');
+//                if(selected.size() === 0) {
+//                    jQuery('#tx_wordassist table tr:first').addClass('assist_select');
+//                } else {
+//                    var next = jQuery('.assist_select').removeClass().next();
+//                    if(next.size() === 0) {
+//                       jQuery('#tx_wordassist table tr:first').addClass('assist_select');
+//                    } else {
+//                       next.addClass("assist_select");
+//                    }
+//                }
+//                break;
+//            case 'up' :
+//                var selected = jQuery('.assist_select');
+//                if(selected.size() === 0) {
+//                    jQuery('#tx_wordassist table tr:last').addClass('assist_select');
+//                } else {
+//                    var prev = jQuery('.assist_select').removeClass().prev();
+//                    if(prev.size() === 0) {
+//                       jQuery('#tx_wordassist table tr:last').addClass('assist_select');
+//                    } else {
+//                       prev.addClass("assist_select");
+//                    }
+//                }
+//                break;
+//            case 'enter':
+//                this.close(true);
+//                break;
+//            default:
+//                this.close();
+//        }
+    },
     
-}
+    close : function(isCallCallBackFunc){
+//        element.hide();
+//        isCallCallBackFunc = isCallCallBackFunc || false;
+//
+//        var selected = jQuery('.assist_select');
+//        var str = null;
+//
+//        if(selected.size !== 0) {
+//           str = jQuery('.assist_select').children('.assist_word').text();
+//        }
+//
+//        if(isCallCallBackFunc) {
+//        	callback(str);
+//        }
+//        Editor.getPlugin("wordassist").close();
+    },
+    searchWord: function(search_str){
+        console.log("search_str>>"+search_str);
+    },
+    /**
+     * 문자열이 한글인지 확인.
+     * @param str
+     */
+    isHangul : function(str) {
+        var han = /[ㄱ-힣]/g;
+        var chk_han = str.match(han);
+
+        if(chk_han !== null && str.length === chk_han.length) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+    /**
+     * 문자열이 영어인지 확인.
+     * @param str
+     */
+   isEnglish : function(str) {
+        var eng = /[a-z|A-Z]/g;
+        var chk_eng = str.match(eng);
+
+        if(chk_eng !== null && str.length === chk_eng.length) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+});
