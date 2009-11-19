@@ -57,13 +57,12 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
     assistExecute : function(){
         var _self = this;
-        var t = null;  // 임시.
         if(!_self._isWordassist) {
             _self._isWordassist = true;
-            var tmpNode = _self.addTmpSpan(); // 임시 div 삽입
-            t = tmpNode;
+            var tmpNode = _self.addTmpSpan(); // 임시 span 삽입
             if(tmpNode === null){
                 console.log('tmpNode null!!');
+                $tom.remove(tmpNode); // 일단.. 삭제 
                 return ; // 끝내는곳 호출하기
             }
             _self.calTmpSpanPosition(tmpNode); //좌표 계산.폰트 사이즈 만큼 내려주기.
@@ -73,9 +72,9 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 _self.selectedTextNode(prevTmpNode);
             }
             _self.openPopupLayer();
-            //$tom.remove(tmpNode); // div 삭제.
+            $tom.remove(tmpNode); // div 삭제.
         }else{
-            $tom.remove(t); // div 삭제.
+//            $tom.remove(t); // div 삭제.
             this.toggleKeyDownEvent(true);
             _self._isWordassist = false;
         }
@@ -142,7 +141,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
      * @param str
      */
     isPassableNode : function(str){
-      return (str.trim() != 0 && str.lastIndexOf(" ")+1 !== str.length)
+      return (str.trim().length != 0 && this.changeToSpace(str).lastIndexOf(" ")+1 !== str.length)
     },
     /**
     * temp span 의 position 계산하기.
@@ -188,7 +187,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         console.log("selectedTextNode");
         console.log(prevTmpNode);
         if(prevTmpNode.nodeType == 3){ //textNode 일때.
-            var offset = prevTmpNode.nodeValue.replace(/\s/g,' ').lastIndexOf(' ')+1;
+            var offset = this.changeToSpace(prevTmpNode.nodeValue).lastIndexOf(' ')+1;
             var _sNode = $tom.divideText(prevTmpNode,offset);
             this._selectedNode.push({_sNode:_sNode,offset:offset,_pNode:_sNode.previousSibling});
             console.log(this._selectedNode);
@@ -199,6 +198,12 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         }
     },
 
+     /**
+     * 공백 -> space 로 변경.
+     */
+    changeToSpace : function(str){
+        return str.replace(/\s/g,' ')
+    },
     
     /**
     * pop 띄우기.
