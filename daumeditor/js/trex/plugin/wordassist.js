@@ -58,11 +58,11 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     assistExecute : function(){
         var _self = this;
         if(!_self._isWordassist) {
-            _self._isWordassist = true;
+//            _self._isWordassist = true;
             var tmpNode = _self.addTmpSpan(); // 임시 span 삽입
             if(tmpNode === null){
+//                $tom.remove(tmpNode); // 일단.. 삭제
                 console.log('tmpNode null!!');
-                $tom.remove(tmpNode); // 일단.. 삭제 
                 return ; // 끝내는곳 호출하기
             }
             _self.calTmpSpanPosition(tmpNode); //좌표 계산.폰트 사이즈 만큼 내려주기.
@@ -98,11 +98,25 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     */
     addTmpSpan : function(){
         var processor = this.getCurrentProcessor();
+        if(!processor.isCollapsed()) {            
+            return null;
+        }
         var _attributes = {'id': 'tmpMarking'	};
         var _aNode = processor.create("span", _attributes);
-        return this.purePasteNode(_aNode);
+		processor.pasteNode(_aNode, false);
+        //cleanWhitespace(_aNode.parentNode);
+		var t = this.skipWhiteSpace(_aNode);
+        console.log(t);
+        if(t !== null)
+        console.log(t.nodeType +' // ' + t.nodeName )
+//        $tx('tx_article_title').value = '';
+//        $tx('tx_article_title').value +=this.skipWhiteSpace(_aNode).nodeValue + ' // ';
+//        $tx('tx_article_title').value +=this.skipWhiteSpace(_aNode).nodeType + ' // ';
+//        $tx('tx_article_title').value +=$tom.divideText(this.skipWhiteSpace(_aNode),2).nodeValue+' // ';
+        $tom.remove(_aNode); // 일단.. 삭제
+        return null;
+//        return _aNode;
     },
-
     /**
      * marker 없이 순수 node만 endNode에 추가 시킨다.
      * @param node 추가시킬 노드.
@@ -112,11 +126,17 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 		var _endContainer = _rng.endContainer;
 		var _endOffset = _rng.endOffset;
 		console.log(_endContainer);
+//		console.log(_endContainer.textContent);
+       $tx('tx_article_title').value = '';
+        $tx('tx_article_title').value =_endContainer.textContent + ' // ';
+        $tx('tx_article_title').value +=_endContainer.nodeType + ' // ';
+        $tx('tx_article_title').value +=_endContainer.nodeName;
+        return null;
         if (_endContainer.nodeType == 3) {
             console.log("parentNode.insertBefore");
             console.log(_endContainer);
-            console.log(this.isPassableNode(_endContainer.textContent));
-            if(this.isPassableNode(_endContainer.textContent)){
+            console.log(this.isPassableNode(_endContainer.nodeValue));
+            if(this.isPassableNode(_endContainer.nodeValue)){
                 _endContainer.splitText(_endOffset);
                 _endContainer.parentNode.insertBefore(node, _endContainer.nextSibling);
             }else{
@@ -126,7 +146,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             console.log("insertBefore");
             var beforeNode = this.skipWhiteSpace(_endContainer.childNodes[_endOffset]); //이렇게 처리 하는 이유는 whitespace 뒤에 tmpspan을 붙이지 않으려구.. ;;
             console.log(beforeNode);
-            if(beforeNode !== null && this.isPassableNode(beforeNode.textContent)){
+            if(beforeNode !== null && this.isPassableNode(beforeNode.nodeValue)){
                 _endContainer.insertBefore(node, _endContainer.childNodes[_endOffset]);
             }else{
                 return null;
@@ -164,19 +184,20 @@ Trex.Plugin.WordAssist = Trex.Class.create({
      * @param node
      */
     skipWhiteSpace : function(node){
-        if(node.previousSibling !== undefined && node.previousSibling !== null){
-            if(node.previousSibling.isElementContentWhitespace){
-                return this.skipWhiteSpace(node.previousSibling);
+        if($tx.msie) return node.previousSibling; //IE 일경우
+        var cur = node.previousSibling;
+        if(cur !== undefined && cur !== null){
+            if ( cur.nodeType == 3 && !cur.length) {
+                return this.skipWhiteSpace(cur);
             }else{
-                return node.previousSibling;
+                return cur;
             }
         }else{
-            if(node.isElementContentWhitespace){
+            if(cur === null){
                 return null;
             }else{
                 return node;
             }
-
         }
     },
 
@@ -184,8 +205,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     * 선택되어야 하는 TextNode 정하기.
     */
     selectedTextNode : function(prevTmpNode){
-        console.log("selectedTextNode");
-        console.log(prevTmpNode);
         if(prevTmpNode.nodeType == 3){ //textNode 일때.
             var offset = this.changeToSpace(prevTmpNode.nodeValue).lastIndexOf(' ')+1;
             var _sNode = $tom.divideText(prevTmpNode,offset);
@@ -281,7 +300,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     },
 
     moveFocusToTextEnd : function(node){
-        this.getCurrentProcessor().getRange().setStartAfter(node);
+        this.getCurrentProcessor().getRange().setEnd(node,node.length);
     },
     /**
      * popup Layer control 하기 위한 keyEvent!!
@@ -313,7 +332,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         }
     }
 });
-
 Trex.Plugin.WordAssist.PopupLayer = Trex.Class.create({
 	$mixins: [
         Trex.I.JSRequester
@@ -408,3 +426,27 @@ Trex.Plugin.WordAssist.PopupLayer = Trex.Class.create({
         }
     }
 });
+
+function cleanWhitespace( element ) {
+    // If no element is provided, do the whole HTML document
+    element = element || document;
+    // Use the first child as a starting point
+    var cur = element.firstChild;
+
+    // Go until there are no more child nodes
+    while ( cur != null ) {
+
+        // If the node is a text node, and it contains nothing but whitespace
+        if ( cur.nodeType == 3 && ! /\S/.test(cur.nodeValue) ) {
+            // Remove the text node
+            element.removeChild( cur );
+
+        // Otherwise, if it’s an element
+        } else if ( cur.nodeType == 1 ) {
+             // Recurse down through the document
+             cleanWhitespace( cur );
+        }
+
+        cur = cur.nextSibling; // Move through the child nodes
+    }
+}
