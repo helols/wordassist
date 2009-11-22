@@ -46,6 +46,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _popupLayer : null,
     _isWordassist : null,
     _canvas : null,
+    _tmp : null,
 	initialize: function(editor, config) {
         if(!editor) {return;}
         var _self = this;
@@ -61,10 +62,11 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 //            _self._isWordassist = true;
             var tmpNode = _self.addTmpSpan(); // 임시 span 삽입
             if(tmpNode === null){
-//                $tom.remove(tmpNode); // 일단.. 삭제
+                $tom.remove(tmpNode); // 일단.. 삭제
                 console.log('tmpNode null!!');
                 return ; // 끝내는곳 호출하기
             }
+            _self._tmp = tmpNode;
             _self.calTmpSpanPosition(tmpNode); //좌표 계산.폰트 사이즈 만큼 내려주기.
 
             var prevTmpNode = _self.skipWhiteSpace(tmpNode);
@@ -104,55 +106,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var _attributes = {'id': 'tmpMarking'	};
         var _aNode = processor.create("span", _attributes);
 		processor.pasteNode(_aNode, false);
-        //cleanWhitespace(_aNode.parentNode);
-		var t = this.skipWhiteSpace(_aNode);
-        console.log(t);
-        if(t !== null)
-        console.log(t.nodeType +' // ' + t.nodeName )
-//        $tx('tx_article_title').value = '';
-//        $tx('tx_article_title').value +=this.skipWhiteSpace(_aNode).nodeValue + ' // ';
-//        $tx('tx_article_title').value +=this.skipWhiteSpace(_aNode).nodeType + ' // ';
-//        $tx('tx_article_title').value +=$tom.divideText(this.skipWhiteSpace(_aNode),2).nodeValue+' // ';
-        $tom.remove(_aNode); // 일단.. 삭제
-        return null;
-//        return _aNode;
-    },
-    /**
-     * marker 없이 순수 node만 endNode에 추가 시킨다.
-     * @param node 추가시킬 노드.
-     */
-    purePasteNode:function(node){
-        var _rng = this.getCurrentProcessor().getRange();
-		var _endContainer = _rng.endContainer;
-		var _endOffset = _rng.endOffset;
-		console.log(_endContainer);
-//		console.log(_endContainer.textContent);
-       $tx('tx_article_title').value = '';
-        $tx('tx_article_title').value =_endContainer.textContent + ' // ';
-        $tx('tx_article_title').value +=_endContainer.nodeType + ' // ';
-        $tx('tx_article_title').value +=_endContainer.nodeName;
-        return null;
-        if (_endContainer.nodeType == 3) {
-            console.log("parentNode.insertBefore");
-            console.log(_endContainer);
-            console.log(this.isPassableNode(_endContainer.nodeValue));
-            if(this.isPassableNode(_endContainer.nodeValue)){
-                _endContainer.splitText(_endOffset);
-                _endContainer.parentNode.insertBefore(node, _endContainer.nextSibling);
-            }else{
-                return null;
-            }
-		} else {
-            console.log("insertBefore");
-            var beforeNode = this.skipWhiteSpace(_endContainer.childNodes[_endOffset]); //이렇게 처리 하는 이유는 whitespace 뒤에 tmpspan을 붙이지 않으려구.. ;;
-            console.log(beforeNode);
-            if(beforeNode !== null && this.isPassableNode(beforeNode.nodeValue)){
-                _endContainer.insertBefore(node, _endContainer.childNodes[_endOffset]);
-            }else{
-                return null;
-            }
-		}
-        return node;
+        return _aNode;
     },
 
     /**
@@ -177,6 +131,9 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         this._assistLeft = left;
         console.log('_assistTop>>'+_self._assistTop);
         console.log("_assistLeft>>"+_self._assistLeft);
+        $tx('tx_article_title').value  = '';
+        $tx('tx_article_title').value += 'top['+this._assistTop + '] // ';
+        $tx('tx_article_title').value += 'left['+this._assistLeft+ ']';
     },
 
     /**
@@ -210,6 +167,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             var _sNode = $tom.divideText(prevTmpNode,offset);
             this._selectedNode.push({_sNode:_sNode,offset:offset,_pNode:_sNode.previousSibling});
             console.log(this._selectedNode);
+            $tx('tx_article_title').value  = '';
+            $tx('tx_article_title').value += '_sNode['+_sNode.nodeValue + ']';
         }else if(prevTmpNode.nodeType == 1){
 
         }else{
@@ -221,15 +180,17 @@ Trex.Plugin.WordAssist = Trex.Class.create({
      * 공백 -> space 로 변경.
      */
     changeToSpace : function(str){
-        return str.replace(/\s/g,' ')
+        return str.replace(/\s/g,' ');
     },
     
     /**
     * pop 띄우기.
     */
     openPopupLayer : function(){
-//        this.toggleKeyDownEvent();
-        this._popupLayer.searchWord('scho');  // 팝업열기.
+        var _self = this;
+        var nodes = _self._selectedNode[0];
+        this.toggleKeyDownEvent();
+        this._popupLayer.searchWord(nodes._sNode.nodeValue);  // 팝업열기.
     },
 
     /**
@@ -264,7 +225,16 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     toggleEvent : function(evName, ev, isExprie){
         if(isExprie === undefined) isExprie = false;
         var _canvas = this._editor.getCanvas();
-        var idx = _canvas.jobObservers[evName] === undefined ?-1:_canvas.jobObservers[evName].indexOf(ev);
+        var idx = -1;
+        if( _canvas.jobObservers[evName] !== null && _canvas.jobObservers[evName] !== undefined){
+            if($tx.msie){
+                for(var i = 0 ; i < _canvas.jobObservers[evName].length ; i++){
+                    if(_canvas.jobObservers[evName][i] === ev){ idx = i; }
+                }
+            }else{
+                idx = _canvas.jobObservers[evName].indexOf(ev);
+            }
+        }
         if(idx != -1  && (idx != -1 || isExprie)){
             _canvas.jobObservers[evName].splice(idx,1);
         }else if(!isExprie){
@@ -288,7 +258,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                     _pNode.insertData(nodes.offset,str);
                     _self.moveFocusToTextEnd(_pNode);
                 }else{
-                    console.log('_pNode undefined !!')
+                    console.log('_pNode undefined !!');
+                    $tx('tx_article_title').value += '_pNode undefined ';
                     _sNode.nodeValue = str;
                     _self.moveFocusToTextEnd(_sNode);
                 }
@@ -300,7 +271,15 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     },
 
     moveFocusToTextEnd : function(node){
-        this.getCurrentProcessor().getRange().setEnd(node,node.length);
+        var _rng = this.getCurrentProcessor().getRange();
+        if($tx.webkit){
+            _rng.setEndAfter(node);
+        }else{
+            _rng.setStart(node,node.length);
+            _rng.setEnd(node,node.length);
+            _rng.collapse(true);
+        }
+
     },
     /**
      * popup Layer control 하기 위한 keyEvent!!
@@ -314,6 +293,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             case $tx.KEY_RETURN :
                 if($tx.KEY_UP === ev.keyCode){
                     //_assist.keyEventProcess("up");
+                    alert('ddd');
                 }
                 else if($tx.KEY_DOWN === ev.keyCode){
                     //_assist.keyEventProcess("down");
@@ -330,6 +310,10 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 //                 _wordAssistExpires();
                 break;
         }
+    },
+    removeTmp : function(){
+
+          $tom.remove(this._tmp); // div 삭제.
     }
 });
 Trex.Plugin.WordAssist.PopupLayer = Trex.Class.create({
@@ -395,6 +379,8 @@ Trex.Plugin.WordAssist.PopupLayer = Trex.Class.create({
     },
     searchWord: function(search_str){
         console.log("search_str>>"+search_str);
+//        $tx('tx_article_title').value  = '';
+        $tx('tx_article_title').value += 'search_str['+search_str + ']';
         this.close(true);
     },
     /**
