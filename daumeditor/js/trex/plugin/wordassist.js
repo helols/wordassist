@@ -37,13 +37,14 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 		__Identity: 'wordassist'
 	},
 	$mixins: [
-		Trex.I.JobObservable
+		Trex.I.JobObservable,
+        Trex.I.JSRequester
 	],
     _assistTop : 0,
     _assistLeft : 0,
     _editor : null,
     _selectedNode :[],
-    _popupLayer : null,
+//    _popupLayer : null,
     _isWordassist : null,
     _canvas : null,
     _tmp : null,
@@ -52,7 +53,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var _self = this;
         _self._editor = editor;
         _self._canvas  = editor.getCanvas();
-        _self._popupLayer = new Trex.Plugin.WordAssist.PopupLayer(this);
+//        _self._popupLayer = new Trex.Plugin.WordAssist.PopupLayer(this);
         this.execute = this.assistExecute;
 	},
 
@@ -104,7 +105,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         if(!processor.isCollapsed()) {            
             return null;
         }
-        var _attributes = {'id': 'tmpMarking'	};
+        var _attributes = {};
         var _aNode = processor.create("span", _attributes);
 		processor.pasteNode(_aNode, false);
         return _aNode;
@@ -124,17 +125,50 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     calTmpSpanPosition : function(tmpNode){
         var _self = this;
         var iframe = $tx('tx_canvas_wysiwyg');
-        var itop = tmpNode.offsetTop ;
-        var ileft = tmpNode.offsetLeft;
-        var top = itop + parseInt(iframe.offsetParent.offsetTop + iframe.offsetParent.clientTop,10)+5; // +5
-        var left = ileft+parseInt(iframe.offsetParent.offsetLeft + iframe.offsetParent.clientLeft,10)+5; //+5
+        var getTop = function(element){
+            var y = 0;
+            for(var e = element; e ;e = e.offsetParent){
+                y += e.offsetTop;
+            }
+            for(e=element.parentNode;e && e != document.body;e=e.parentNode){
+                if(e.scrollTop) y -= e.scrollTop;
+            }
+            return y;
+        }
+
+        var getLeft = function(element){
+            var x = 0;
+            for(var e = element; e ;e = e.offsetParent){
+                x += e.offsetLeft;
+            }
+            for(e=element.parentNode;e && e != document.body;e=e.parentNode){
+                if(e.scrollLeft) x -= e.scrollLeft;
+            }
+            return x;
+        }
+
+        var top = getTop(tmpNode) + parseInt(iframe.offsetParent.offsetTop + iframe.offsetParent.clientTop,10); // +5
+        if(!$tx.gecko){
+            top += tmpNode.offsetHeight;
+            if($tx.msie){ //width를 주지 않으면... left 위치를 못 가져 오기 때문에.. 예외처리.
+                $tx.setStyle(tmpNode,{'width':'1px'});
+            }
+        }else{
+            top += 3;
+        }
+        var left = getLeft(tmpNode)+parseInt(iframe.offsetParent.offsetLeft + iframe.offsetParent.clientLeft,10); //+5
+
         this._assistTop = top;
         this._assistLeft = left;
         console.log('_assistTop>>'+_self._assistTop);
         console.log("_assistLeft>>"+_self._assistLeft);
         $tx('tx_article_title').value  = '';
-        $tx('tx_article_title').value += 'top['+this._assistTop + '] // ';
-        $tx('tx_article_title').value += 'left['+this._assistLeft+ ']';
+        $tx('tx_article_title').value += 'top['+parseInt(iframe.offsetParent.offsetTop + iframe.offsetParent.clientTop,10)+ ']';
+        $tx('tx_article_title').value += 'left['+parseInt(iframe.offsetParent.offsetLeft + iframe.offsetParent.clientLeft,10)+ ']';
+        $tx('tx_article_title').value += 'getTop['+getTop(tmpNode)+ ']';
+        $tx('tx_article_title').value += 'getLeft['+getLeft(tmpNode)+ ']';
+        $tx('tx_article_title').value += 'tmpNode['+tmpNode.offsetHeight+ ']';
+        $tx('tx_article_title').value += 'tmpNode clientHeight['+tmpNode.clientHeight+ ']';
     },
 
     /**
@@ -169,7 +203,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             var offset = this.changeToSpace(prevTmpNode.nodeValue).lastIndexOf(' ')+1; // 0 면 앞 노드 까지 검색하기 ? 
             var _sNode = $tom.divideText(prevTmpNode,offset);
             this._selectedNode.push({_sNode:_sNode,offset:offset,_pNode:_sNode.previousSibling});
-            $tx('tx_article_title').value  = '';
+//            $tx('tx_article_title').value  = '';
             $tx('tx_article_title').value += '_sNode['+_sNode.nodeValue + ']';
         }else if(prevTmpNode.nodeType == 1){
             $tx('tx_article_title').value += 'prevTmpNode.nodeType[11111]';
@@ -190,9 +224,13 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     */
     openPopupLayer : function(){
         var _self = this;
+        _self.toggleKeyDownEvent();
         var nodes = _self._selectedNode[0];
-        this.toggleKeyDownEvent();
-        this._popupLayer.searchWord(nodes._sNode.nodeValue);  // 팝업열기.
+        var top  = _self._assistTop;
+        var left = _self._assistLeft;
+        $tx.setStyle($tx('tx_wordassist'),{top: top+'px',left:left+'px'});
+        $tx.show($tx('tx_wordassist'));
+        _self.searchWord(nodes._sNode.nodeValue);  // 팝업열기.
     },
 
     /**
@@ -308,6 +346,92 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 //                 _wordAssistExpires();
                 break;
         }
+    },
+    keyEventProcess : function(action) {
+//        switch(action.toLowerCase()){
+//            case 'down' :
+//                var selected = jQuery('.assist_select');
+//                if(selected.size() === 0) {
+//                    jQuery('#tx_wordassist table tr:first').addClass('assist_select');
+//                } else {
+//                    var next = jQuery('.assist_select').removeClass().next();
+//                    if(next.size() === 0) {
+//                       jQuery('#tx_wordassist table tr:first').addClass('assist_select');
+//                    } else {
+//                       next.addClass("assist_select");
+//                    }
+//                }
+//                break;
+//            case 'up' :
+//                var selected = jQuery('.assist_select');
+//                if(selected.size() === 0) {
+//                    jQuery('#tx_wordassist table tr:last').addClass('assist_select');
+//                } else {
+//                    var prev = jQuery('.assist_select').removeClass().prev();
+//                    if(prev.size() === 0) {
+//                       jQuery('#tx_wordassist table tr:last').addClass('assist_select');
+//                    } else {
+//                       prev.addClass("assist_select");
+//                    }
+//                }
+//                break;
+//            case 'enter':
+//                this.close(true);
+//                break;
+//            default:
+//                this.close();
+//        }
+    },
+
+    close : function(isCallCallBackFunc){
+        var _self = this;
+//        element.hide();
+//        isCallCallBackFunc = isCallCallBackFunc || false;
+//
+//        var selected = jQuery('.assist_select');
+//        var str = null;
+//
+//        if(selected.size !== 0) {
+//           str = jQuery('.assist_select').children('.assist_word').text();
+//        }
+//
+        if(isCallCallBackFunc) {
+        	_self.closeAfterCallback('school');
+        }
+//        Editor.getPlugin("wordassist").close();
+    },
+    searchWord: function(search_str){
+
+
+       // this.close(true);
+    },
+    /**
+     * 문자열이 한글인지 확인.
+     * @param str
+     */
+    isHangul : function(str) {
+        var han = /[ㄱ-힣]/g;
+        var chk_han = str.match(han);
+
+        if(chk_han !== null && str.length === chk_han.length) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+    /**
+     * 문자열이 영어인지 확인.
+     * @param str
+     */
+   isEnglish : function(str) {
+        var eng = /[a-z|A-Z]/g;
+        var chk_eng = str.match(eng);
+
+        if(chk_eng !== null && str.length === chk_eng.length) {
+            return true;
+        } else {
+            return false;
+        }
     }
 });
 Trex.Plugin.WordAssist.PopupLayer = Trex.Class.create({
@@ -353,7 +477,7 @@ Trex.Plugin.WordAssist.PopupLayer = Trex.Class.create({
 //                this.close();
 //        }
     },
-    
+
     close : function(isCallCallBackFunc){
         var _self = this;
 //        element.hide();
@@ -372,8 +496,13 @@ Trex.Plugin.WordAssist.PopupLayer = Trex.Class.create({
 //        Editor.getPlugin("wordassist").close();
     },
     searchWord: function(search_str){
-        $tx('tx_article_title').value += 'search_str['+search_str + ']';
-        this.close(true);
+        $tx.setStyle($tx('tx_wordassist'),
+                    {top: +'px',
+                     left:'100px'
+                    });
+        $tx.show($tx('tx_wordassist'));
+
+       // this.close(true);
     },
     /**
      * 문자열이 한글인지 확인.

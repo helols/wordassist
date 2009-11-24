@@ -1,35 +1,54 @@
- #tx_wordassist {
-	       position: absolute;
-	       display : block;
-	       border: 1px solid #000000;
-           width:300px;
-           text-align:center;
-           background-color:white;
-           overflow:hidden;
-	   }
+#tx_wordassist {
+    background-color: white;
+    position: absolute;
+    display: block;
+    border: 1px solid #83A6C8;
+    font-family : "굴림","arial";
+    text-align: center;
+    width: 300px;
+    padding:7px 1px;
+}
 
-       .ptable {
-           text-align:left;
-           overflow:hidden;
-	   }
+#querylist{
+    color:#000000;
+    font-size: 12px;
+    padding: 7px 1px;
+    text-align: left;
+    width: auto;
+}
 
-       .assist_select {
-            background-color: #ccccff;
-            clear:both;
-            padding:2px 5px 0;
-	   }
+#queryArea{
+    cursor:pointer;
+    height:14px;
+    line-height:21px;
+    overflow:hidden;
+    padding:1px 0 7px 10px;
+    width:auto;
+}
 
-       .assist_word{
-            color: #000000;
-            overflow:hidden;
-            padding-left:0.2em;
-            white-space:nowrap;
-            width:33%;
-       }
-       .assist_des{
-            color: #000000;
-            overflow:hidden;
-            padding-left:0.8em;
-            white-space:nowrap;
-            width:66%;
-       }
+.ptable {
+    text-align: left;
+    overflow: hidden;
+}
+
+.assist_select {
+    background-color: #ccccff;
+    clear: both;
+    padding: 2px 5px 0;
+}
+
+.assist_word {
+    color: #000000;
+    overflow: hidden;
+    padding-left: 0.2em;
+    white-space: nowrap;
+    width: 33%;
+}
+
+.assist_des {
+    color: #000000;
+    overflow: hidden;
+    padding-left: 0.8em;
+    white-space: nowrap;
+    width: 66%;
+}
