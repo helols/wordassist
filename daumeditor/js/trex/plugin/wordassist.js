@@ -88,7 +88,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var timeoutID = setTimeout(function(){
             callback('failed');
             jsonpGC();
-        }, 1000);
+        }, 3000);
 
         var success = function(){
             callback('success',data);
