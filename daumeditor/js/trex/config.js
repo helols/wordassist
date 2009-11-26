@@ -78,7 +78,8 @@ var TrexConfig = function() {
 			attacher: { },
 			searcher: { }
 		},
-		plugin: { }
+		plugin: { },
+        daumAPIKey:'7346eb8352778b08bb5bedb006f1bee3bd4375e8' // api 용 key 변수.
 	};
 	
 	var __ICON_IMAGES_PATH = "http://icon.daum-img.net/editor/";
@@ -311,7 +312,7 @@ var TrexConfig = function() {
 	 * @function
 	 * @param {String} key - 주어진 키
 	 */
-	_trexConfig["get"] = function(key) {
+    _trexConfig["get"] = function(key) {
 		return __TREX_CONFIGURE[key];
 	};
 	

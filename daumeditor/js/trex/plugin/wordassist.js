@@ -1,10 +1,9 @@
 TrexConfig.addTool(
-        "wordassist",
-{
-    wysiwygonly: true,
-    status: true
-}
-        );
+        "wordassist",{
+            wysiwygonly: true,
+            status: true
+            }
+);
 
 /*
  * 추후 toolbar에 assist 관련 옵션 메뉴등록시 사용.
@@ -39,7 +38,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     $mixins: [
         Trex.I.JobObservable,
         Trex.I.JSRequester
-    ],
+    ], 
     _assistTop : 0,
     _assistLeft : 0,
     _editor : null,
@@ -49,6 +48,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _canvas : null,
     _tmp : null,
     _wordAssistUtil : null,
+    _daumAPIKey : TrexConfig.get('daumAPIKey'),
     initialize: function(editor, config) {
         if (!editor) {
             return;
@@ -60,16 +60,98 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         //        _self._popupLayer = new Trex.Plugin.WordAssist.PopupLayer(this);
         this.execute = this.assistExecute;
     },
+    /**
+     * cross domain - jsonp
+     * @param option
+     */
+    jsonpImportUrl : function(_url,callback,_charset){
+        var data ;
+        var jsonp = 'jsonp'+(+new Date);
+        var status = 'success';
+        var isClearTimer = true;
+        _url = _url.replace(/=\?(&|$)/g, "=" + jsonp + "$1");
 
+        //jquery 참조.
+        window[ jsonp ] = function(tmp){
+                data = tmp;
+                success();
+                jsonpGC(isClearTimer);
+        };
+        var head = document.getElementsByTagName("head")[0];
+        var script = document.createElement("script");
+
+        script.src = _url;
+        script.charset = _charset || 'utf-8';
+        head.appendChild(script);
+
+        //JSONP는 예외가 났을 때 처리할 방법이 없기 때문에.. 타이머를 이용한 뒷처리.
+        var timeoutID = setTimeout(function(){
+            callback('failed');
+            jsonpGC();
+        }, 1000);
+
+        var success = function(){
+            callback('success',data);
+        }
+
+        var jsonpGC = function(_isClearTimer){
+            if(_isClearTimer)
+                clearTimeout(timeoutID);
+            window[ jsonp ] = undefined;
+            try{ delete window[ jsonp ]; } catch(e){}
+            if ( head )
+                head.removeChild( script );
+        }
+    },
     assistExecute : function() {
         var _self = this;
         ///////////////////////////////////// down : function area start /////////////////////////////////////
+       //http://suggest.dic.daum.net/eng2_nsuggest?q=s&mod=json&code=utf_in
+        var engSuggest = function(q){
+
+        var insertItems = function(list) {
+//            if(list.length == 0 ){
+//                this.close();
+//                return false;
+//            }
+//            var table = jQuery('<table class="ptable" cellspacing="0" cellpadding="0" style="width: 293px;">')
+//
+//            list.each(function(data){
+//                table.append('<tr><td class="assist_word">'+ data.word +'</td><td class="assist_des">' + data.desc +'</td></tr>');
+//            });
+//            console.log(table.find('tr'));
+//            table.find("tr").hover(function(){
+//                    jQuery('.assist_select').removeClass();
+//                    jQuery(this).addClass('assist_select');
+//                }, function(){
+//                   //NOP
+//            }).click(function() {self.close(true);});
+//
+//            element.html('').append(table);
+        }
+            
+        var _url = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+q+'&cp='+q.length;
+//            var _url = 'http://suggest.dic.daum.net/eng2_nsuggest?q=s&mod=json&code=utf_in&jsonp=?';
+            _self.jsonpImportUrl(_url,function(status,data){
+                    if(status == 'success'){
+                        console.log(data.length);
+                    }
+                });
+        }
         /**
          * 검색.
          * @param search_str
          */
         var searchWord = function(search_str) {
-            // this.close(true);
+
+            if(_self._wordAssistUtil.isEnglish(search_str)){
+                engSuggest(search_str);
+            }else if(_self._wordAssistUtil.isHangul(search_str)){
+
+            }else{
+                // this.close(true);
+                return ; //끝내기호출해야함.
+            }
         }
         /**
          * position을 위한 temp span add
@@ -198,11 +280,13 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             var top = _self._assistTop;
             var left = _self._assistLeft;
             $tx.setStyle($tx('tx_wordassist'), {top: top + 'px',left:left + 'px'});
+
+            $tx('tx_wordassist').innerHTML = '';
             var _loadingImg = document.createElement("img");
             _loadingImg.src = '/daumeditor/images/deco/ajax-loader.gif'
-            $tx('tx_wordassist').innerHTML = '';
-            $tx('tx_wordassist').appendChild(_loadingImg);
+            $tx('tx_wordassist').appendChild(_loadingImg);            
             $tx.show($tx('tx_wordassist'));
+            
             searchWord(nodes._sNode.nodeValue);  // 팝업열기.
         }
 
