@@ -105,15 +105,19 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     },
     assistExecute : function() {
         var _self = this;
+        var cache_itemList = [];
+        /* todo
+            close 할때 비워 주기. cache_itemList 
+         */
         ///////////////////////////////////// down : function area start /////////////////////////////////////
        //http://suggest.dic.daum.net/eng2_nsuggest?q=s&mod=json&code=utf_in
-        var engSuggest = function(q){
 
-        var insertItems = function(list) {
-//            if(list.length == 0 ){
-//                this.close();
-//                return false;
-//            }
+
+        var insertItems = function(search_word,list) {
+            if(list.length == 0 ){
+                //this.close();
+                return;
+            }
 //            var table = jQuery('<table class="ptable" cellspacing="0" cellpadding="0" style="width: 293px;">')
 //
 //            list.each(function(data){
@@ -129,14 +133,19 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 //
 //            element.html('').append(table);
         }
-            
-        var _url = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+q+'&cp='+q.length;
-//            var _url = 'http://suggest.dic.daum.net/eng2_nsuggest?q=s&mod=json&code=utf_in&jsonp=?';
+        var engSuggest = function(q){
+            var _url = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+q+'&cp='+q.length;
             _self.jsonpImportUrl(_url,function(status,data){
-                    if(status == 'success'){
-                        console.log(data.length);
-                    }
-                });
+                        if(status == 'success'){
+                            var search_word = data[0];
+                            var list = [];
+                            data[1].each((function(rowdata){
+                                list.push({word : rowdata[0], desc : rowdata[1]});
+                                }));
+                            cache_itemList[search_word] = list;
+                            insertItems(search_word,list);
+                        }
+                    });
         }
         /**
          * 검색.
