@@ -1,23 +1,19 @@
+.loadingbar{
+    text-align: center;
+}
+
 #tx_wordassist {
+    color:#000000;
     background-color: white;
     position: absolute;
     display: block;
+    font-size: 12px;
     border: 1px solid #83A6C8;
     font-family : "굴림","arial";
-    text-align: center;
     width: 300px;
     padding:7px 1px;
 }
-
-#querylist{
-    color:#000000;
-    font-size: 12px;
-    padding: 7px 1px;
-    text-align: left;
-    width: auto;
-}
-
-#queryArea{
+.search_result{
     cursor:pointer;
     height:14px;
     line-height:21px;

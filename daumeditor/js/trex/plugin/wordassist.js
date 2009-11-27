@@ -118,6 +118,27 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 //this.close();
                 return;
             }
+            //<div class="search_result">
+              //  <font color="#eb550c">search_word</font>al<font color="#666666"> : 물개잡이, 바다표범잡이</font>
+                //<input type="hidden" value="search_word"/>
+//		    </div>
+            var popupDiv = $tx('tx_wordassist');
+            popupDiv.innerHTML = '';
+            $tx.removeClassName(popupDiv,'loadingbar');
+            list.each(function(item){
+                var rowDiv = document.createElement('div');
+                var wordFont = document.createElement('font');
+                var descFont = document.createElement('font');
+                $tx.addClassName(rowDiv,'search_result');
+                $tom.setAttribute(wordFont,'color','#EB550C');
+                $tom.setAttribute(descFont,'color','#66666');
+                wordFont.innerHTML = item.word;
+                descFont.innerHTML = item.desc;
+                rowDiv.appendChild(wordFont);
+                rowDiv.appendChild(descFont);
+                console.log(rowDiv);
+                popupDiv.appendChild(rowDiv);
+            });
 //            var table = jQuery('<table class="ptable" cellspacing="0" cellpadding="0" style="width: 293px;">')
 //
 //            list.each(function(data){
@@ -291,6 +312,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             $tx.setStyle($tx('tx_wordassist'), {top: top + 'px',left:left + 'px'});
 
             $tx('tx_wordassist').innerHTML = '';
+            $tx.addClassName($tx('tx_wordassist'),'loadingbar');
             var _loadingImg = document.createElement("img");
             _loadingImg.src = '/daumeditor/images/deco/ajax-loader.gif'
             $tx('tx_wordassist').appendChild(_loadingImg);            
@@ -360,6 +382,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 openPopupLayer();
             }
         } else {
+            $tx('tx_article_title').value += 'else !!';
             toggleKeyDownEvent(true);
             _self._isWordassist = false;
         }
@@ -396,18 +419,12 @@ Trex.Plugin.WordAssist = Trex.Class.create({
      * @param isExprie
      */
     toggleEvent : function(evName, ev, isExprie) {
-        if (isExprie === undefined) isExprie = false;
+        var isExprie = isExprie || false;
         var _canvas = this._editor.getCanvas();
         var idx = -1;
         if (_canvas.jobObservers[evName] !== null && _canvas.jobObservers[evName] !== undefined) {
-            if ($tx.msie) {
-                for (var i = 0; i < _canvas.jobObservers[evName].length; i++) {
-                    if (_canvas.jobObservers[evName][i] === ev) {
-                        idx = i;
-                    }
-                }
-            } else {
-                idx = _canvas.jobObservers[evName].indexOf(ev);
+            for (var i = 0; i < _canvas.jobObservers[evName].length; i++) {
+                if (_canvas.jobObservers[evName][i].toString() ===  ev.toString()){ idx = i; }
             }
         }
         if (idx != -1 && (idx != -1 || isExprie)) {
