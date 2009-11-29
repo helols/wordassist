@@ -50,6 +50,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _wordAssistUtil : null,
     _daumAPIKey : TrexConfig.get('daumAPIKey'),
     _assist_type : 'dic',
+    _cache_itemList : [],
     initialize: function(editor, config) {
         if (!editor) {
             return;
@@ -106,23 +107,25 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     },
     assistExecute : function() {
         var _self = this;
-        var cache_itemList = [];
         var timeoutID = null;
+        var popupDiv = $tx('tx_wordassist');
         /* todo
             close 할때 비워 주기. cache_itemList 
          */
         ///////////////////////////////////// down : function area start /////////////////////////////////////
         var toggleAssistType = function(){
-            _self._assist_type = _self._assist_type === 'dic'?'suggest':'dic'
+            _self._assist_type = _self._assist_type === 'dic'?'suggest':'dic';
         }
-
-        var insertItems = function(search_word,list) {
-            if(list.length == 0 || (_self._wordAssistUtil.isEnglish(search_word) !== _self._wordAssistUtil.isEnglish(list[0].word))){
-                //this.close(); // 닫으면서 노 서치.. 메세지 띄우기.
+        var notResultMessge = function(sType){
+            $tx.removeClassName(popupDiv,'loadingbar');
+            popupDiv.innerHTML = sType =='suggest'? 'No suggestions!!!':'no search in dictionary!!!';
+        }
+        var insertItems = function(search_word,list,sType) {
+            if((_self._wordAssistUtil.isEnglish(search_word) !== _self._wordAssistUtil.isEnglish(list[0].word))){ // 공백문제.
+                notResultMessge(sType);
                 return;
             }
             var template = new Template('<div class="search_result"><span><font color="#eb550c">#{equalsWd}</font>#{modWd}</span><font color="#666666"> : #{desc}</font></div>');
-            var popupDiv = $tx('tx_wordassist');
             popupDiv.innerHTML = '';
             $tx.removeClassName(popupDiv,'loadingbar');
             var html = [];
@@ -136,7 +139,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 }
                 html.push(template.evaluate(_item));
             });
-            if(cache_itemList[search_word] === undefined ) cache_itemList[search_word] = list;
+            if(_self._cache_itemList[search_word+'_'+sType] === undefined ) _self._cache_itemList[search_word+'_'+sType] = list;
             popupDiv.innerHTML = html.join('');
             var sDivs = $tom.collectAll(popupDiv, "div.search_result");
             sDivs.each(function(sDiv){
@@ -154,20 +157,25 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             });
         }
 
-        var suggest = function(search_word){
+        var suggest = function(search_word,sType){
             var resultList = [];
-            if(cache_itemList[search_word] !== undefined){
-                resultList = cache_itemList[search_word];
-                insertItems(search_word,resultList);
+            if(_self._cache_itemList[search_word+'_'+sType] !== undefined){
+                resultList = _self._cache_itemList[search_word+'_'+sType];
+                insertItems(search_word,resultList,sType);
             }else{
                 var _url = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+encodeURIComponent(search_word)+'&cp='+search_word.length;
                 _self.jsonpImportUrl(_url,function(status,data){
                     if(status == 'success'){
+                        if(data[1].length == 0) {
+                            notResultMessge(sType);
+                            return;
+                        }
                         data[1].each((function(rowdata){
                             resultList.push({word : rowdata[0], desc : rowdata[1]});
-                            insertItems(search_word,resultList);
+                            insertItems(search_word,resultList,sType);
                         }));
                     }else{
+                        notResultMessge(sType);
                         return ; // close;
                     }
                 });
@@ -176,20 +184,25 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
         var dictionary = function(search_word,dicType){
             var resultList = [];
-            if(cache_itemList[search_word] !== undefined){
-                resultList = cache_itemList[search_word];
-                insertItems(search_word,resultList);
+            if(_self._cache_itemList[search_word+'_'+dicType] !== undefined){
+                resultList = _self._cache_itemList[search_word+'_'+dicType];
+                insertItems(search_word,resultList,dicType);
             }else{
                 var _url = 'http://apis.daum.net/dic/'+dicType;
                 _url +=  '?apikey='+ _self._daumAPIKey + "&q=" + encodeURIComponent(search_word) + '&kind=WORD&callback=?&output=json';
                 _self.jsonpImportUrl(_url,function(status,data){
                     if(status == 'success'){
                         var channel = data.channel;
+                        if(channel.result == 0) {
+                            notResultMessge(dicType);
+                            return;
+                        }
                         for(var i=0; i<channel.result; i++) {
                             resultList.push({word : channel.item[i].title, desc : channel.item[i].description.replace(/&lt;b&gt;/gi, '<b>').replace(/&lt;\/b&gt;/gi, '</b>')});
                         }
-                        insertItems(search_word,resultList);
+                        insertItems(search_word,resultList,dicType);
                     }else{
+                        notResultMessge(dicType);
                         return ; //close
                     }
                 });
@@ -200,9 +213,12 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * @param search_str
          */
         var searchWord = function() {
+
             var nodes = _self._selectedNode[0];
             var search_word = nodes._sNode.nodeValue;
-            if(_self._assist_type == 'suggest') suggest(search_word);
+            if(_self._assist_type == 'suggest'){
+                suggest(search_word,'suggest');
+            }
             else {
                 var dicType = '';
                 if(_self._wordAssistUtil.isEnglish(search_word)){
@@ -296,55 +312,56 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * @param ev
          */
         var pupupOpenAfterKeyDownEvent = function(ev) {
-            var popupdiv = $tx('tx_wordassist');
-            console.log(ev.keyCode);
+            if((ev.keyCode == Trex.__KEY.SPACE && ev.ctrlKey) || ev.ctrlKey || ev.altKey || ev.shiftKey){
+                return;
+            }
             switch (ev.keyCode) {
                 case $tx.KEY_DOWN :
-                    if($tom.collect(popupdiv,'div.select_over') === undefined){
-                        _self._wordAssistUtil.toggleSelectRow(popupdiv.firstChild,'add');
+                    if($tom.collect(popupDiv,'div.select_over') === undefined){
+                        _self._wordAssistUtil.toggleSelectRow(popupDiv.firstChild,'add');
                     }else{
-                        var seldiv = $tom.collect(popupdiv,'div.select_over');
-                        _self._wordAssistUtil.toggleSelectRow(seldiv,'del');
+                        var seldiv = $tom.collect(popupDiv,'div.select_over');
+//                        _self._wordAssistUtil.toggleSelectRow(seldiv,'del');
                         if(seldiv.nextSibling !== null){
                             _self._wordAssistUtil.toggleSelectRow(seldiv.nextSibling,'add');
                         }else{
-                            _self._wordAssistUtil.toggleSelectRow(popupdiv.firstChild,'add');    
+                            _self._wordAssistUtil.toggleSelectRow(popupDiv.firstChild,'add');
                         }
                     }
                     $tx.stop(ev);
                     break;
                 case $tx.KEY_UP :
-                    if($tom.collect(popupdiv,'div.select_over') === undefined){
-                        _self._wordAssistUtil.toggleSelectRow(popupdiv.lastChild,'add');
+                    if($tom.collect(popupDiv,'div.select_over') === undefined){
+                        _self._wordAssistUtil.toggleSelectRow(popupDiv.lastChild,'add');
                     }else{
-                        var seldiv = $tom.collect(popupdiv,'div.select_over');
-                        _self._wordAssistUtil.toggleSelectRow(seldiv,'del');
+                        var seldiv = $tom.collect(popupDiv,'div.select_over');
+//                        _self._wordAssistUtil.toggleSelectRow(seldiv,'del');
                         if(seldiv.previousSibling !== null){
                             _self._wordAssistUtil.toggleSelectRow(seldiv.previousSibling,'add');
                         }else{
-                            _self._wordAssistUtil.toggleSelectRow(popupdiv.lastChild,'add');    
+                            _self._wordAssistUtil.toggleSelectRow(popupDiv.lastChild,'add');
                         }
                     }
                     $tx.stop(ev);
                     break;
                 case $tx.KEY_RETURN :
-                    if($tom.collect(popupdiv,'span.selectWd') !== undefined){
-                        replaceData(_self._wordAssistUtil.spanValue($tom.collect(popupdiv,'span.selectWd')));
+                    if($tom.collect(popupDiv,'span.selectWd') !== undefined){
+                        replaceData(_self._wordAssistUtil.spanValue($tom.collect(popupDiv,'span.selectWd')));
                     }
                     $tx.stop(ev);
                     break;
                 case $tx.KEY_LEFT : case $tx.KEY_RIGHT : case $tx.KEY_ESC:
                 case $tx.KEY_DELETE : case $tx.KEY_HOME: case $tx.KEY_END:
                 case $tx.KEY_PAGEDOWN : case $tx.KEY_PAGEUP: case $tx.KEY_TAB:
-                case Trex.__KEY.SPACE: case Trex.__KEY.CUT: case Trex.__KEY.PASTE:     
-                    $tx.stop(ev);
+                case Trex.__KEY.SPACE: case Trex.__KEY.CUT: case Trex.__KEY.PASTE:
+                    closePopupLayer();
                     break;// 닫기
-                default :
+                default :                        
                     if(timeoutID == null){
-                        timeoutID = setTimeout(searchWord,500);
+                        timeoutID = setTimeout(searchWord,100);
                     }else{
                         clearTimeout(timeoutID);
-                        timeoutID = setTimeout(searchWord,500);
+                        timeoutID = setTimeout(searchWord,100);
                     }
             }
         };
@@ -366,20 +383,31 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * pop 띄우기.
          */
         var openPopupLayer = function() {
+            _self._isWordassist = true;
             toggleKeyDownEvent();
             if(_self._selectedNode.length == 0){
-                $tx('tx_article_title').value += '@@@END';
                 return ;
             }
             var top = _self._assistTop;
-            var left = _self._assistLeft;
-            var wordassistdiv = $tx('tx_wordassist');
-            $tx.setStyle(wordassistdiv, {top: top + 'px',left:left + 'px'});
+            var left = _self._assistLeft - (_self._selectedNode[0]._sNode.nodeValue.length*7);
+            $tx.setStyle(popupDiv, {top: top + 'px',left:left + 'px'});
 
-            wordassistdiv.innerHTML = '';
-            $tx.addClassName(wordassistdiv,'loadingbar');
-            $tx.show(wordassistdiv);
+            popupDiv.innerHTML = '';
+            $tx.addClassName(popupDiv,'loadingbar');
+            $tx.show(popupDiv);
             searchWord();
+        }
+
+         /**
+         * pop 닫기.
+         */
+        var closePopupLayer = function(isNormalize) {
+            var normalize = isNormalize || true;
+            _self._isWordassist = false;
+            toggleKeyDownEvent(true);
+            popupDiv.innerHTML = '';
+            $tx.hide(popupDiv);
+            closeAfterCallback(normalize);
         }
 
         var moveFocusToTextEnd = function(node) {
@@ -413,20 +441,31 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             } catch(e) {
             } finally {
                 _self._selectedNode = [];
+                closePopupLayer(false);
             }
         };
 
         /**
          * PopupLayer close after callback
          */
-        var closeAfterCallback = function(returnStr) {
-            replaceData(returnStr);
+        var closeAfterCallback = function(isNormalize) {
+            _self._assist_type = 'dic'; // suggest 로 초기화.
+            _self._cache_itemList = [];
+            timeoutID = null;
+            try {
+                if (_self._selectedNode.length > 0 && isNormalize) {
+                    var nodes = _self._selectedNode[0];
+//                    nodes._sNode.parentNode.normalize();
+                }
+            } catch(e) {
+            } finally {
+                _self._selectedNode = [];
+            }
         };
 
         ///////////////////////////////////// up : function area end///// donw : logic start /////////////////////////////////////
-        if (!_self._isWordassist) {
-            _self._isWordassist = true;
-            toggleAssistType();
+        toggleAssistType();
+        if(!_self._isWordassist){
             var tmpNode = addTmpSpan(); // 임시 span 삽입
             if (tmpNode === null) {
                 $tom.remove(tmpNode); // 일단.. 삭제
@@ -443,11 +482,10 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 $tom.remove(tmpNode); // div 삭제.
                 openPopupLayer();
             }
-        } else {
-            $tx('tx_article_title').value += 'else !!';
-            toggleKeyDownEvent(true);
-            _self._isWordassist = false;
+        }else{
+            searchWord();
         }
+
         ///////////////////////////////////// up : logic end /////////////////////////////////////
     },
 
@@ -494,61 +532,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         } else if (!isExprie) {
             _canvas.observeJob(evName, ev);
         }
-    },
-    keyEventProcess : function(action) {
-        //        switch(action.toLowerCase()){
-        //            case 'down' :
-        //                var selected = jQuery('.assist_select');
-        //                if(selected.size() === 0) {
-        //                    jQuery('#tx_wordassist table tr:first').addClass('assist_select');
-        //                } else {
-        //                    var next = jQuery('.assist_select').removeClass().next();
-        //                    if(next.size() === 0) {
-        //                       jQuery('#tx_wordassist table tr:first').addClass('assist_select');
-        //                    } else {
-        //                       next.addClass("assist_select");
-        //                    }
-        //                }
-        //                break;
-        //            case 'up' :
-        //                var selected = jQuery('.assist_select');
-        //                if(selected.size() === 0) {
-        //                    jQuery('#tx_wordassist table tr:last').addClass('assist_select');
-        //                } else {
-        //                    var prev = jQuery('.assist_select').removeClass().prev();
-        //                    if(prev.size() === 0) {
-        //                       jQuery('#tx_wordassist table tr:last').addClass('assist_select');
-        //                    } else {
-        //                       prev.addClass("assist_select");
-        //                    }
-        //                }
-        //                break;
-        //            case 'enter':
-        //                this.close(true);
-        //                break;
-        //            default:
-        //                this.close();
-        //        }
-    },
-
-    close : function(isCallCallBackFunc) {
-        var _self = this;
-        //        element.hide();
-        //        isCallCallBackFunc = isCallCallBackFunc || false;
-        //
-        //        var selected = jQuery('.assist_select');
-        //        var str = null;
-        //
-        //        if(selected.size !== 0) {
-        //           str = jQuery('.assist_select').children('.assist_word').text();
-        //        }
-        //
-        if (isCallCallBackFunc) {
-            _self.closeAfterCallback('school');
-        }
-        //        Editor.getPlugin("wordassist").close();
     }
-
 });
 
 var wordAssistUtil = function() {
@@ -628,6 +612,10 @@ var wordAssistUtil = function() {
      */
     this.toggleSelectRow = function(node,type){
             if(type == 'add'){
+                var seldiv = $tom.collect($tx('tx_wordassist'),'div.select_over');
+                if(seldiv !== undefined){
+                    new wordAssistUtil().toggleSelectRow(seldiv,'del');
+                }
                 $tx.addClassName(node,'select_over');
                 $tx.addClassName($tom.collect(node,'span'),'selectWd');
             }else{
