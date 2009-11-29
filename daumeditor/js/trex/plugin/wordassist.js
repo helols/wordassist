@@ -110,50 +110,45 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             close 할때 비워 주기. cache_itemList 
          */
         ///////////////////////////////////// down : function area start /////////////////////////////////////
-       //http://suggest.dic.daum.net/eng2_nsuggest?q=s&mod=json&code=utf_in
-
-
         var insertItems = function(search_word,list) {
             if(list.length == 0 ){
                 //this.close();
                 return;
             }
-            //<div class="search_result">
-              //  <font color="#eb550c">search_word</font>al<font color="#666666"> : 물개잡이, 바다표범잡이</font>
-                //<input type="hidden" value="search_word"/>
-//		    </div>
+            var template = new Template('<div class="search_result"><span><font color="#eb550c">#{equalsWd}</font>#{modWd}</span><font color="#666666"> : #{desc}</font></div>');
             var popupDiv = $tx('tx_wordassist');
             popupDiv.innerHTML = '';
             $tx.removeClassName(popupDiv,'loadingbar');
+            var html = [];
             list.each(function(item){
-                var rowDiv = document.createElement('div');
-                var wordFont = document.createElement('font');
-                var descFont = document.createElement('font');
-                $tx.addClassName(rowDiv,'search_result');
-                $tom.setAttribute(wordFont,'color','#EB550C');
-                $tom.setAttribute(descFont,'color','#66666');
-                wordFont.innerHTML = item.word;
-                descFont.innerHTML = item.desc;
-                rowDiv.appendChild(wordFont);
-                rowDiv.appendChild(descFont);
-                console.log(rowDiv);
-                popupDiv.appendChild(rowDiv);
+//                var idx = item.word.indexOf(search_word);
+                var idx = 0;
+                var _item = {
+                    equalsWd : item.word.slice(0,idx),
+                    modWd : item.word.slice(idx),
+                    desc  : item.desc
+                }
+                html.push(template.evaluate(_item));
             });
-//            var table = jQuery('<table class="ptable" cellspacing="0" cellpadding="0" style="width: 293px;">')
-//
-//            list.each(function(data){
-//                table.append('<tr><td class="assist_word">'+ data.word +'</td><td class="assist_des">' + data.desc +'</td></tr>');
-//            });
-//            console.log(table.find('tr'));
-//            table.find("tr").hover(function(){
-//                    jQuery('.assist_select').removeClass();
-//                    jQuery(this).addClass('assist_select');
-//                }, function(){
-//                   //NOP
-//            }).click(function() {self.close(true);});
-//
-//            element.html('').append(table);
+            popupDiv.innerHTML = html.join('');
+            var sDivs = $tom.collectAll(popupDiv, "div.search_result");
+            sDivs.each(function(sDiv){
+                sDiv.onclick = function(){
+                    replaceData(_self._wordAssistUtil.spanValue($tom.collect(sDiv,'span.selectWd')));
+                };
+                sDiv.onmousedown = function(){
+                };
+                sDiv.onmouseout = function(){
+                    $tx.removeClassName(sDiv,'select_over');
+                    $tx.removeClassName($tom.collect(sDiv,'span'),'selectWd');
+                };
+                sDiv.onmouseover = function(){
+                    $tx.addClassName(sDiv,'select_over');
+                    $tx.addClassName($tom.collect(sDiv,'span'),'selectWd');
+                }
+            });
         }
+        
         var engSuggest = function(q){
             var _url = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+q+'&cp='+q.length;
             _self.jsonpImportUrl(_url,function(status,data){
@@ -240,7 +235,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          */
         var selectedTextNode = function(prevTmpNode) {
             if (prevTmpNode.nodeType == 3) { //textNode 일때.
-                if($tx.msie){ //IE만 초기에 .. 공백을 만들어버리는 현상을 보인다.
+                if(!$tx.msie){ //IE만 초기에 .. 공백을 만들어버리는 현상을 보인다.
                     prevTmpNode.parentNode.normalize();
                 }
                 $tx('tx_article_title').value += _self.isPassableNode(prevTmpNode.nodeValue);
@@ -266,22 +261,18 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var pupupOpenAfterKeyDownEvent = function(ev) {
             switch (ev.keyCode) {
                 case $tx.KEY_DOWN :
+                    break;
                 case $tx.KEY_UP :
+                    break;
                 case $tx.KEY_RETURN :
-                    if ($tx.KEY_UP === ev.keyCode) {
-                        $tx('tx_article_title').value = '_sNode[' + _self._selectedNode[0]._sNode.nodeValue + ']';
-                    }
-                    else if ($tx.KEY_DOWN === ev.keyCode) {
-                    }
-                    else if ($tx.KEY_RETURN === ev.keyCode) {
-                        }
-                    $tx.stop(ev);
+                    replaceData(_self._wordAssistUtil.spanValue($tom.collect($tx('tx_wordassist'),'span.selectWd')));
                     break;
                 case $tx.KEY_LEFT :
                 case $tx.KEY_RIGHT :
                 case $tx.KEY_ESC:
                     break;
             }
+            $tx.stop(ev);
         };
         /**
          * toggle keydown event
@@ -309,14 +300,12 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             var nodes = _self._selectedNode[0];
             var top = _self._assistTop;
             var left = _self._assistLeft;
-            $tx.setStyle($tx('tx_wordassist'), {top: top + 'px',left:left + 'px'});
+            var wordassistdiv = $tx('tx_wordassist');
+            $tx.setStyle(wordassistdiv, {top: top + 'px',left:left + 'px'});
 
-            $tx('tx_wordassist').innerHTML = '';
-            $tx.addClassName($tx('tx_wordassist'),'loadingbar');
-            var _loadingImg = document.createElement("img");
-            _loadingImg.src = '/daumeditor/images/deco/ajax-loader.gif'
-            $tx('tx_wordassist').appendChild(_loadingImg);            
-            $tx.show($tx('tx_wordassist'));
+            wordassistdiv.innerHTML = '';
+            $tx.addClassName(wordassistdiv,'loadingbar');
+            $tx.show(wordassistdiv);
             
             searchWord(nodes._sNode.nodeValue);  // 팝업열기.
         }
@@ -544,4 +533,15 @@ var wordAssistUtil = function() {
             }
         }
     };
+
+    this.spanValue = function(node){
+        var returnstr = "";
+        var nodes = node.childNodes;
+        for(var i = 0; i < nodes.length; i++){
+            var cNode = nodes.item(i);
+            if ( cNode.nodeType != 8 )
+                    returnstr += cNode.nodeType != 1 ?cNode.nodeValue :new wordAssistUtil().spanValue(cNode);
+        }
+        return returnstr;
+    }
 }

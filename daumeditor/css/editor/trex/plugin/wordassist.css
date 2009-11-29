@@ -1,5 +1,6 @@
 .loadingbar{
     text-align: center;
+    background:url("/daumeditor/images/deco/ajax-loader.gif") no-repeat center;
 }
 
 #tx_wordassist {
@@ -21,7 +22,9 @@
     padding:1px 0 7px 10px;
     width:auto;
 }
-
+.select_over{
+   background-color:#E0E8F5;
+}
 .ptable {
     text-align: left;
     overflow: hidden;
