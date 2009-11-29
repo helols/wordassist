@@ -49,6 +49,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _tmp : null,
     _wordAssistUtil : null,
     _daumAPIKey : TrexConfig.get('daumAPIKey'),
+    _assist_type : 'dic',
     initialize: function(editor, config) {
         if (!editor) {
             return;
@@ -106,13 +107,18 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     assistExecute : function() {
         var _self = this;
         var cache_itemList = [];
+        var timeoutID = null;
         /* todo
             close 할때 비워 주기. cache_itemList 
          */
         ///////////////////////////////////// down : function area start /////////////////////////////////////
+        var toggleAssistType = function(){
+            _self._assist_type = _self._assist_type === 'dic'?'suggest':'dic'
+        }
+
         var insertItems = function(search_word,list) {
-            if(list.length == 0 ){
-                //this.close();
+            if(list.length == 0 || (_self._wordAssistUtil.isEnglish(search_word) !== _self._wordAssistUtil.isEnglish(list[0].word))){
+                //this.close(); // 닫으면서 노 서치.. 메세지 띄우기.
                 return;
             }
             var template = new Template('<div class="search_result"><span><font color="#eb550c">#{equalsWd}</font>#{modWd}</span><font color="#666666"> : #{desc}</font></div>');
@@ -121,15 +127,16 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             $tx.removeClassName(popupDiv,'loadingbar');
             var html = [];
             list.each(function(item){
-//                var idx = item.word.indexOf(search_word);
-                var idx = 0;
+                var equalsWd = item.word.slice(0,search_word.length) == search_word?search_word:'';
+                var modWd = equalsWd === '' ? item.word : item.word.slice(search_word.length);
                 var _item = {
-                    equalsWd : item.word.slice(0,idx),
-                    modWd : item.word.slice(idx),
+                    equalsWd : equalsWd,
+                    modWd : modWd,
                     desc  : item.desc
                 }
                 html.push(template.evaluate(_item));
             });
+            if(cache_itemList[search_word] === undefined ) cache_itemList[search_word] = list;
             popupDiv.innerHTML = html.join('');
             var sDivs = $tom.collectAll(popupDiv, "div.search_result");
             sDivs.each(function(sDiv){
@@ -139,43 +146,73 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 sDiv.onmousedown = function(){
                 };
                 sDiv.onmouseout = function(){
-                    $tx.removeClassName(sDiv,'select_over');
-                    $tx.removeClassName($tom.collect(sDiv,'span'),'selectWd');
+                    _self._wordAssistUtil.toggleSelectRow(sDiv,'del');
                 };
                 sDiv.onmouseover = function(){
-                    $tx.addClassName(sDiv,'select_over');
-                    $tx.addClassName($tom.collect(sDiv,'span'),'selectWd');
+                    _self._wordAssistUtil.toggleSelectRow(sDiv,'add');
                 }
             });
         }
-        
-        var engSuggest = function(q){
-            var _url = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+q+'&cp='+q.length;
-            _self.jsonpImportUrl(_url,function(status,data){
-                        if(status == 'success'){
-                            var search_word = data[0];
-                            var list = [];
-                            data[1].each((function(rowdata){
-                                list.push({word : rowdata[0], desc : rowdata[1]});
-                                }));
-                            cache_itemList[search_word] = list;
-                            insertItems(search_word,list);
+
+        var suggest = function(search_word){
+            var resultList = [];
+            if(cache_itemList[search_word] !== undefined){
+                resultList = cache_itemList[search_word];
+                insertItems(search_word,resultList);
+            }else{
+                var _url = 'http://suggestqueries.google.com/complete/search?client=suggest&hjson=t&ds=d&hl=ko&jsonp=?&q='+encodeURIComponent(search_word)+'&cp='+search_word.length;
+                _self.jsonpImportUrl(_url,function(status,data){
+                    if(status == 'success'){
+                        data[1].each((function(rowdata){
+                            resultList.push({word : rowdata[0], desc : rowdata[1]});
+                            insertItems(search_word,resultList);
+                        }));
+                    }else{
+                        return ; // close;
+                    }
+                });
+            }
+        }
+
+        var dictionary = function(search_word,dicType){
+            var resultList = [];
+            if(cache_itemList[search_word] !== undefined){
+                resultList = cache_itemList[search_word];
+                insertItems(search_word,resultList);
+            }else{
+                var _url = 'http://apis.daum.net/dic/'+dicType;
+                _url +=  '?apikey='+ _self._daumAPIKey + "&q=" + encodeURIComponent(search_word) + '&kind=WORD&callback=?&output=json';
+                _self.jsonpImportUrl(_url,function(status,data){
+                    if(status == 'success'){
+                        var channel = data.channel;
+                        for(var i=0; i<channel.result; i++) {
+                            resultList.push({word : channel.item[i].title, desc : channel.item[i].description.replace(/&lt;b&gt;/gi, '<b>').replace(/&lt;\/b&gt;/gi, '</b>')});
                         }
-                    });
+                        insertItems(search_word,resultList);
+                    }else{
+                        return ; //close
+                    }
+                });
+            }
         }
         /**
          * 검색.
          * @param search_str
          */
-        var searchWord = function(search_str) {
-
-            if(_self._wordAssistUtil.isEnglish(search_str)){
-                engSuggest(search_str);
-            }else if(_self._wordAssistUtil.isHangul(search_str)){
-
-            }else{
-                // this.close(true);
-                return ; //끝내기호출해야함.
+        var searchWord = function() {
+            var nodes = _self._selectedNode[0];
+            var search_word = nodes._sNode.nodeValue;
+            if(_self._assist_type == 'suggest') suggest(search_word);
+            else {
+                var dicType = '';
+                if(_self._wordAssistUtil.isEnglish(search_word)){
+                    dicType = 'endic';
+                }else if(_self._wordAssistUtil.isHangul(search_word)){
+                    dicType = 'krdic';
+                }else{
+                    return ;//노 dic...
+                }
+                dictionary(search_word,dicType);
             }
         }
         /**
@@ -259,20 +296,57 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * @param ev
          */
         var pupupOpenAfterKeyDownEvent = function(ev) {
+            var popupdiv = $tx('tx_wordassist');
+            console.log(ev.keyCode);
             switch (ev.keyCode) {
                 case $tx.KEY_DOWN :
+                    if($tom.collect(popupdiv,'div.select_over') === undefined){
+                        _self._wordAssistUtil.toggleSelectRow(popupdiv.firstChild,'add');
+                    }else{
+                        var seldiv = $tom.collect(popupdiv,'div.select_over');
+                        _self._wordAssistUtil.toggleSelectRow(seldiv,'del');
+                        if(seldiv.nextSibling !== null){
+                            _self._wordAssistUtil.toggleSelectRow(seldiv.nextSibling,'add');
+                        }else{
+                            _self._wordAssistUtil.toggleSelectRow(popupdiv.firstChild,'add');    
+                        }
+                    }
+                    $tx.stop(ev);
                     break;
                 case $tx.KEY_UP :
+                    if($tom.collect(popupdiv,'div.select_over') === undefined){
+                        _self._wordAssistUtil.toggleSelectRow(popupdiv.lastChild,'add');
+                    }else{
+                        var seldiv = $tom.collect(popupdiv,'div.select_over');
+                        _self._wordAssistUtil.toggleSelectRow(seldiv,'del');
+                        if(seldiv.previousSibling !== null){
+                            _self._wordAssistUtil.toggleSelectRow(seldiv.previousSibling,'add');
+                        }else{
+                            _self._wordAssistUtil.toggleSelectRow(popupdiv.lastChild,'add');    
+                        }
+                    }
+                    $tx.stop(ev);
                     break;
                 case $tx.KEY_RETURN :
-                    replaceData(_self._wordAssistUtil.spanValue($tom.collect($tx('tx_wordassist'),'span.selectWd')));
+                    if($tom.collect(popupdiv,'span.selectWd') !== undefined){
+                        replaceData(_self._wordAssistUtil.spanValue($tom.collect(popupdiv,'span.selectWd')));
+                    }
+                    $tx.stop(ev);
                     break;
-                case $tx.KEY_LEFT :
-                case $tx.KEY_RIGHT :
-                case $tx.KEY_ESC:
-                    break;
+                case $tx.KEY_LEFT : case $tx.KEY_RIGHT : case $tx.KEY_ESC:
+                case $tx.KEY_DELETE : case $tx.KEY_HOME: case $tx.KEY_END:
+                case $tx.KEY_PAGEDOWN : case $tx.KEY_PAGEUP: case $tx.KEY_TAB:
+                case Trex.__KEY.SPACE: case Trex.__KEY.CUT: case Trex.__KEY.PASTE:     
+                    $tx.stop(ev);
+                    break;// 닫기
+                default :
+                    if(timeoutID == null){
+                        timeoutID = setTimeout(searchWord,500);
+                    }else{
+                        clearTimeout(timeoutID);
+                        timeoutID = setTimeout(searchWord,500);
+                    }
             }
-            $tx.stop(ev);
         };
         /**
          * toggle keydown event
@@ -297,7 +371,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 $tx('tx_article_title').value += '@@@END';
                 return ;
             }
-            var nodes = _self._selectedNode[0];
             var top = _self._assistTop;
             var left = _self._assistLeft;
             var wordassistdiv = $tx('tx_wordassist');
@@ -306,8 +379,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             wordassistdiv.innerHTML = '';
             $tx.addClassName(wordassistdiv,'loadingbar');
             $tx.show(wordassistdiv);
-            
-            searchWord(nodes._sNode.nodeValue);  // 팝업열기.
+            searchWord();
         }
 
         var moveFocusToTextEnd = function(node) {
@@ -354,6 +426,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         ///////////////////////////////////// up : function area end///// donw : logic start /////////////////////////////////////
         if (!_self._isWordassist) {
             _self._isWordassist = true;
+            toggleAssistType();
             var tmpNode = addTmpSpan(); // 임시 span 삽입
             if (tmpNode === null) {
                 $tom.remove(tmpNode); // 일단.. 삭제
@@ -534,6 +607,10 @@ var wordAssistUtil = function() {
         }
     };
 
+    /**
+     * span tag의 textvalue 가져오기.
+     * @param node
+     */
     this.spanValue = function(node){
         var returnstr = "";
         var nodes = node.childNodes;
@@ -543,5 +620,19 @@ var wordAssistUtil = function() {
                     returnstr += cNode.nodeType != 1 ?cNode.nodeValue :new wordAssistUtil().spanValue(cNode);
         }
         return returnstr;
+    }
+    /**
+     * type 에 따라 css toggle
+     * @param node
+     * @param type
+     */
+    this.toggleSelectRow = function(node,type){
+            if(type == 'add'){
+                $tx.addClassName(node,'select_over');
+                $tx.addClassName($tom.collect(node,'span'),'selectWd');
+            }else{
+                $tx.removeClassName(node,'select_over');
+                $tx.removeClassName($tom.collect(node,'span'),'selectWd');
+            }
     }
 }

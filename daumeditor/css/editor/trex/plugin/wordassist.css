@@ -1,6 +1,7 @@
 .loadingbar{
     text-align: center;
     background:url("/daumeditor/images/deco/ajax-loader.gif") no-repeat center;
+    height:10px;
 }
 
 #tx_wordassist {
