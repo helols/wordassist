@@ -116,13 +116,13 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var toggleAssistType = function(){
             _self._assist_type = _self._assist_type === 'dic'?'suggest':'dic';
         }
-        var notResultMessge = function(sType){
+        var notResultMessge = function(){
             $tx.removeClassName(popupDiv,'loadingbar');
-            popupDiv.innerHTML = sType =='suggest'? 'No suggestions!!!':'no search in dictionary!!!';
+            popupDiv.innerHTML =  _self._assist_type =='suggest'? 'No suggestions!!!':'no search in dictionary!!!';
         }
         var insertItems = function(search_word,list,sType) {
             if((_self._wordAssistUtil.isEnglish(search_word) !== _self._wordAssistUtil.isEnglish(list[0].word))){ // 공백문제.
-                notResultMessge(sType);
+                notResultMessge();
                 return;
             }
             var template = new Template('<div class="search_result"><span><font color="#eb550c">#{equalsWd}</font>#{modWd}</span><font color="#666666"> : #{desc}</font></div>');
@@ -167,7 +167,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 _self.jsonpImportUrl(_url,function(status,data){
                     if(status == 'success'){
                         if(data[1].length == 0) {
-                            notResultMessge(sType);
+                            notResultMessge();
                             return;
                         }
                         data[1].each((function(rowdata){
@@ -175,7 +175,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                             insertItems(search_word,resultList,sType);
                         }));
                     }else{
-                        notResultMessge(sType);
+                        notResultMessge();
                         return ; // close;
                     }
                 });
@@ -194,7 +194,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                     if(status == 'success'){
                         var channel = data.channel;
                         if(channel.result == 0) {
-                            notResultMessge(dicType);
+                            notResultMessge();
                             return;
                         }
                         for(var i=0; i<channel.result; i++) {
@@ -202,7 +202,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                         }
                         insertItems(search_word,resultList,dicType);
                     }else{
-                        notResultMessge(dicType);
+                        notResultMessge();
                         return ; //close
                     }
                 });
@@ -226,6 +226,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 }else if(_self._wordAssistUtil.isHangul(search_word)){
                     dicType = 'krdic';
                 }else{
+                    notResultMessge();
                     return ;//노 dic...
                 }
                 dictionary(search_word,dicType);
@@ -302,6 +303,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             } else if (prevTmpNode.nodeType == 1) {
                 $tx('tx_article_title').value += 'prevTmpNode.nodeType[11111]';
             } else {
+                notResultMessge();
                 return; // 끝내는곳 불러주기.
             }
         };
