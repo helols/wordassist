@@ -13,8 +13,19 @@
     border: 1px solid #83A6C8;
     font-family : "굴림","arial";
     width: 300px;
-    padding:7px 1px;
+    padding:7px 1px 0 1px;
 }
+#tx_wordassist_footer{
+    background:#F4F6FB none repeat scroll 0 0;
+    color:#444444;
+    height:14px;
+    padding:5px 1px 5px 1px;
+    text-align:center;
+}
+#tx_wordassist_footer a{
+    color:#eb550c;
+}
+
 .search_result{
     cursor:pointer;
     height:14px;

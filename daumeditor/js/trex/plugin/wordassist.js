@@ -51,6 +51,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _assist_type : 'dic',
     _cache_itemList : [],
     _history : null,
+    _resultTemplate :null,
+    _footerTemplate :null,
     initialize: function(editor, _config) {
         if (!editor) {
             return;
@@ -110,6 +112,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var timeoutID = null;
         var popupDiv = $tx('tx_wordassist');
         var lastSelectDiv = null;
+        _self._resultTemplate = _self._resultTemplate === null?new Template('<div class="search_result"><span><font color="#eb550c">#{equalsWd}</font>#{modWd}</span><font color="#666666"> : #{desc}</font></div>'):_self._resultTemplate;
+        _self._footerTemplate = _self._footerTemplate === null?new Template('<div id="tx_wordassist_footer">#{mode} 검색결과 | <a href="">change(ctrl+space or click)</a> </div>'):_self._footerTemplate;
         ///////////////////////////////////// down : function area start /////////////////////////////////////
         var toggleAssistType = function(){
             _self._assist_type = _self._assist_type === 'dic'?'suggest':'dic';
@@ -117,14 +121,14 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var notResultMessge = function(){
             $tx.removeClassName(popupDiv,'loadingbar');
             var messge = _self._assist_type =='suggest'? 'No suggestions!!!':'No search in dictionary!!!';
-            popupDiv.innerHTML =  '<div style="text-align:center;color:#eb550c;">'+messge + '</div>';
+            messge += '</div>'+_self._footerTemplate.evaluate({mode:_self._assist_type==='suggest'?'서제스트':'Daum 사전'});
+            popupDiv.innerHTML =  '<div style="text-align:center;color:#eb550c; padding-bottom: 7px;">'+messge
         }
         var insertItems = function(search_word,list,sType) {
             if((_self._wordAssistUtil.isEnglish(search_word) !== _self._wordAssistUtil.isEnglish(list[0].word))){ // 공백문제.
                 notResultMessge();
                 return;
             }
-            var template = new Template('<div class="search_result"><span><font color="#eb550c">#{equalsWd}</font>#{modWd}</span><font color="#666666"> : #{desc}</font></div>');
             popupDiv.innerHTML = '';
             $tx.removeClassName(popupDiv,'loadingbar');
             var html = [];
@@ -136,28 +140,27 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                     modWd : modWd,
                     desc  : item.desc
                 }
-                html.push(template.evaluate(_item));
+                html.push(_self._resultTemplate.evaluate(_item));
             });
-            if(_self._cache_itemList[search_word+'_'+sType] === undefined ) _self._cache_itemList[search_word+'_'+sType] = list;
+            if(_self._cache_itemList[search_word+'_'+sType] === undefined ){
+                _self._cache_itemList[search_word+'_'+sType] = list;
+            }
+
             popupDiv.innerHTML = html.join('');
+            popupDiv.innerHTML += _self._footerTemplate.evaluate({mode:sType==='suggest'?'서제스트':'Daum 사전'});
             var sDivs = $tom.collectAll(popupDiv, "div.search_result");
             sDivs.each(function(sDiv){
                 sDiv.onclick = function(){
                     replaceData(_self._wordAssistUtil.spanValue($tom.collect(sDiv,'span.selectWd')));
                 };
-                sDiv.onmousedown = function(){
-                };
                 sDiv.onmouseout = function(){
-//                    lastSelectDiv = sDiv;
                     _self._wordAssistUtil.toggleSelectRow(sDiv,'del');
                 };
                 sDiv.onmouseover = function(){
                     _self._wordAssistUtil.toggleSelectRow(sDiv,'add');
                 }
             });
-//            popupDiv.onmouseout = function(){
-//
-//            }
+            //            $tom.append(popupDiv)
         }
 
         var suggest = function(search_word,sType){
@@ -321,13 +324,15 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var pupupOpenAfterKeyDownEvent = function(ev) {
             if(ev.keyCode == Trex.__KEY.SPACE && ev.ctrlKey){
                 return;
-            }else if((ev.ctrlKey && Trex.__KEY.CUT) ||
-                     (ev.ctrlKey && Trex.__KEY.PASTE)||
+            }else if((ev.ctrlKey && ev.keyCode == Trex.__KEY.CUT) ||
+                     (ev.ctrlKey && ev.keyCode == Trex.__KEY.PASTE)||
                      (ev.ctrlKey && ev.keyCode == 90) || //undo
                      (ev.ctrlKey && ev.keyCode == 89) || //redo
                      ev.altKey || ev.shiftKey){
-                closePopupLayer();
-                $tx.stop(ev);
+                        closePopupLayer();
+                        $tx.stop(ev);
+                        return;
+            }else if(ev.ctrlKey){
                 return;
             }
             switch (ev.keyCode) {
@@ -336,7 +341,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                         _self._wordAssistUtil.toggleSelectRow(popupDiv.firstChild,'add');
                     }else{
                         var seldiv = $tom.collect(popupDiv,'div.select_over');
-                        if(seldiv.nextSibling !== null){
+                        if(seldiv.nextSibling !== null && seldiv.nextSibling !== $tom.collect(popupDiv,'#tx_wordassist_footer')){
                             _self._wordAssistUtil.toggleSelectRow(seldiv.nextSibling,'add');
                         }else{
                             _self._wordAssistUtil.toggleSelectRow(popupDiv.firstChild,'add');
@@ -346,13 +351,13 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                     break;
                 case $tx.KEY_UP :
                     if($tom.collect(popupDiv,'div.select_over') === undefined){
-                        _self._wordAssistUtil.toggleSelectRow(popupDiv.lastChild,'add');
+                        _self._wordAssistUtil.toggleSelectRow(popupDiv.lastChild.previousSibling,'add');
                     }else{
                         var seldiv = $tom.collect(popupDiv,'div.select_over');
-                        if(seldiv.previousSibling !== null){
+                        if(seldiv.previousSibling !== null && seldiv.previousSibling !== $tom.collect(popupDiv,'#tx_wordassist_footer')){
                             _self._wordAssistUtil.toggleSelectRow(seldiv.previousSibling,'add');
                         }else{
-                            _self._wordAssistUtil.toggleSelectRow(popupDiv.lastChild,'add');
+                            _self._wordAssistUtil.toggleSelectRow(popupDiv.lastChild.previousSibling,'add');
                         }
                     }
                     $tx.stop(ev);
