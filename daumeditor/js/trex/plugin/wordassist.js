@@ -43,7 +43,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _assistLeft : 0,
     _editor : null,
     _selectedNode :[],
-    //    _popupLayer : null,
     _isWordassist : null,
     _canvas : null,
     _tmp : null,
@@ -51,7 +50,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _daumAPIKey : TrexConfig.get('daumAPIKey'),
     _assist_type : 'dic',
     _cache_itemList : [],
-    initialize: function(editor, config) {
+    _history : null,
+    initialize: function(editor, _config) {
         if (!editor) {
             return;
         }
@@ -59,7 +59,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         _self._editor = editor;
         _self._canvas = editor.getCanvas();
         _self._wordAssistUtil = new wordAssistUtil();
-        //        _self._popupLayer = new Trex.Plugin.WordAssist.PopupLayer(this);
+        _self._history = new Trex.History(this, _config);
         this.execute = this.assistExecute;
     },
     /**
@@ -109,16 +109,15 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var _self = this;
         var timeoutID = null;
         var popupDiv = $tx('tx_wordassist');
-        /* todo
-            close 할때 비워 주기. cache_itemList 
-         */
+        var lastSelectDiv = null;
         ///////////////////////////////////// down : function area start /////////////////////////////////////
         var toggleAssistType = function(){
             _self._assist_type = _self._assist_type === 'dic'?'suggest':'dic';
         }
         var notResultMessge = function(){
             $tx.removeClassName(popupDiv,'loadingbar');
-            popupDiv.innerHTML =  _self._assist_type =='suggest'? 'No suggestions!!!':'no search in dictionary!!!';
+            var messge = _self._assist_type =='suggest'? 'No suggestions!!!':'No search in dictionary!!!';
+            popupDiv.innerHTML =  '<div style="text-align:center;color:#eb550c;">'+messge + '</div>';
         }
         var insertItems = function(search_word,list,sType) {
             if((_self._wordAssistUtil.isEnglish(search_word) !== _self._wordAssistUtil.isEnglish(list[0].word))){ // 공백문제.
@@ -149,12 +148,16 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 sDiv.onmousedown = function(){
                 };
                 sDiv.onmouseout = function(){
+//                    lastSelectDiv = sDiv;
                     _self._wordAssistUtil.toggleSelectRow(sDiv,'del');
                 };
                 sDiv.onmouseover = function(){
                     _self._wordAssistUtil.toggleSelectRow(sDiv,'add');
                 }
             });
+//            popupDiv.onmouseout = function(){
+//
+//            }
         }
 
         var suggest = function(search_word,sType){
@@ -213,9 +216,11 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * @param search_str
          */
         var searchWord = function() {
-
             var nodes = _self._selectedNode[0];
             var search_word = nodes._sNode.nodeValue;
+            if(search_word.length < 1){
+                closePopupLayer();
+            }
             if(_self._assist_type == 'suggest'){
                 suggest(search_word,'suggest');
             }
@@ -314,7 +319,15 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * @param ev
          */
         var pupupOpenAfterKeyDownEvent = function(ev) {
-            if((ev.keyCode == Trex.__KEY.SPACE && ev.ctrlKey) || ev.ctrlKey || ev.altKey || ev.shiftKey){
+            if(ev.keyCode == Trex.__KEY.SPACE && ev.ctrlKey){
+                return;
+            }else if((ev.ctrlKey && Trex.__KEY.CUT) ||
+                     (ev.ctrlKey && Trex.__KEY.PASTE)||
+                     (ev.ctrlKey && ev.keyCode == 90) || //undo
+                     (ev.ctrlKey && ev.keyCode == 89) || //redo
+                     ev.altKey || ev.shiftKey){
+                closePopupLayer();
+                $tx.stop(ev);
                 return;
             }
             switch (ev.keyCode) {
@@ -323,7 +336,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                         _self._wordAssistUtil.toggleSelectRow(popupDiv.firstChild,'add');
                     }else{
                         var seldiv = $tom.collect(popupDiv,'div.select_over');
-//                        _self._wordAssistUtil.toggleSelectRow(seldiv,'del');
                         if(seldiv.nextSibling !== null){
                             _self._wordAssistUtil.toggleSelectRow(seldiv.nextSibling,'add');
                         }else{
@@ -337,7 +349,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                         _self._wordAssistUtil.toggleSelectRow(popupDiv.lastChild,'add');
                     }else{
                         var seldiv = $tom.collect(popupDiv,'div.select_over');
-//                        _self._wordAssistUtil.toggleSelectRow(seldiv,'del');
                         if(seldiv.previousSibling !== null){
                             _self._wordAssistUtil.toggleSelectRow(seldiv.previousSibling,'add');
                         }else{
@@ -349,6 +360,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 case $tx.KEY_RETURN :
                     if($tom.collect(popupDiv,'span.selectWd') !== undefined){
                         replaceData(_self._wordAssistUtil.spanValue($tom.collect(popupDiv,'span.selectWd')));
+                    }else{
+                        closePopupLayer();
                     }
                     $tx.stop(ev);
                     break;
@@ -368,9 +381,18 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             }
         };
         /**
+         * popup이 떠 있을때 클릭을 하면 닫아준다.
+         * @param ev
+         */
+        var pupupOpenAfterMouseEvent = function(ev){
+            closePopupLayer();
+            $tx.stop(ev);
+        };
+        /**
          * toggle keydown event
          */
         var toggleKeyDownEvent = function(isExpire) {
+            toggleMouseDownEvent(isExpire);
             _self.toggleEvent(Trex.Ev.__CANVAS_PANEL_KEYDOWN, pupupOpenAfterKeyDownEvent, isExpire);
         };
 
@@ -378,7 +400,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          * toggle mouseDown event (popupLayer close.)
          */
         var toggleMouseDownEvent = function(isExpire) {
-            _self.toggleEvent(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN, pupupOpenAfterKeyDownEvent, isExpire);
+            _self.toggleEvent(Trex.Ev.__CANVAS_PANEL_MOUSEDOWN, pupupOpenAfterMouseEvent, isExpire);
+            _self.toggleEvent(Trex.Ev.__CANVAS_PANEL_SCROLLING, pupupOpenAfterMouseEvent, isExpire);
         };
 
         /**
@@ -487,7 +510,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         }else{
             searchWord();
         }
-
         ///////////////////////////////////// up : logic end /////////////////////////////////////
     },
 
