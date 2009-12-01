@@ -407,10 +407,10 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                             clearIntrvalFF();
                             intervalID = setInterval(searchWord,300);
                         }
+                        $tx.stop(ev);
+                        break;
                     }
-                    $tx.stop(ev);
-                    break;
-                default :                        
+                default :
                     if(timeoutID == null){
                         timeoutID = setTimeout(searchWord,300);
                     }else{
