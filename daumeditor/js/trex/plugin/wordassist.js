@@ -113,7 +113,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var popupDiv = $tx('tx_wordassist');
         var lastSelectDiv = null;
         _self._resultTemplate = _self._resultTemplate === null?new Template('<div class="search_result"><span><font color="#eb550c">#{equalsWd}</font>#{modWd}</span><font color="#666666"> : #{desc}</font></div>'):_self._resultTemplate;
-        _self._footerTemplate = _self._footerTemplate === null?new Template('<div id="tx_wordassist_footer">#{mode} 검색결과 | <a href="">change(ctrl+space or click)</a> </div>'):_self._footerTemplate;
+        _self._footerTemplate = _self._footerTemplate === null?new Template('<div id="tx_wordassist_footer">#{mode} 검색결과 | <a href="" onclick="new wordAssistUtil().assisExecute(event)">change(ctrl+space or click)</a> </div>'):_self._footerTemplate;
         ///////////////////////////////////// down : function area start /////////////////////////////////////
         var toggleAssistType = function(){
             _self._assist_type = _self._assist_type === 'dic'?'suggest':'dic';
@@ -125,7 +125,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             popupDiv.innerHTML =  '<div style="text-align:center;color:#eb550c; padding-bottom: 7px;">'+messge
         }
         var insertItems = function(search_word,list,sType) {
-            if((_self._wordAssistUtil.isEnglish(search_word) !== _self._wordAssistUtil.isEnglish(list[0].word))){ // 공백문제.
+            if((_self._wordAssistUtil.isEnglish(search_word) !== _self._wordAssistUtil.isEnglish(list[0].word.replace(/\s/g,'')))){ // 공백문제.
                 notResultMessge();
                 return;
             }
@@ -151,7 +151,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             var sDivs = $tom.collectAll(popupDiv, "div.search_result");
             sDivs.each(function(sDiv){
                 sDiv.onclick = function(){
-                    replaceData(_self._wordAssistUtil.spanValue($tom.collect(sDiv,'span.selectWd')));
+                    replaceData(_self._wordAssistUtil.tagText($tom.collect(sDiv,'span.selectWd')));
                 };
                 sDiv.onmouseout = function(){
                     _self._wordAssistUtil.toggleSelectRow(sDiv,'del');
@@ -295,13 +295,25 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         /**
          * 선택되어야 하는 TextNode 정하기.
          */
-        var selectedTextNode = function(prevTmpNode) {
+        var selectedTextNode = function(tmpNode,prevTmpNode) {
+//            var childNodes = tmpNode.parentNode.childNodes;
+//            var values = "";
+//            childNodes.each(function(node){
+//                if(node.nodeType == 3){
+//
+//                }
+//            });
+             $tx('tx_article_title').value = '['+tmpNode.parentNode.nodeName+']/['+cleanWhitespace(tmpNode.parentNode,tmpNode)+']';
+            tmpNode.previousSibling.nodeValue=tmpNode.previousSibling.nodeValue.replace(/\S?/,'111');
+            return;
             if (prevTmpNode.nodeType == 3) { //textNode 일때.
+                $tx('tx_article_title').value  += 'NODE 3['+_self._wordAssistUtil.tagText(prevTmpNode)+']';
+                return;
                 if(!$tx.msie){ //IE만 초기에 .. 공백을 만들어버리는 현상을 보인다.
                     prevTmpNode.parentNode.normalize();
                 }
                 $tx('tx_article_title').value += _self.isPassableNode(prevTmpNode.nodeValue);
-                if(!_self.isPassableNode(prevTmpNode.nodeValue)){
+                if(!_self.isPassableNode(prevTmpNode.nodeValue)){                    
                     return ;
                 };
                 var offset = _self._wordAssistUtil.changeToSpace(prevTmpNode.nodeValue).lastIndexOf(' '); // 0 면 앞 노드 까지 검색하기 ?
@@ -309,7 +321,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 _self._selectedNode.push({_sNode:_sNode,offset:offset,_pNode:_sNode.previousSibling});
                 $tx('tx_article_title').value += '_sNode[' + _sNode.nodeValue+ '/'+offset+'//'+_sNode.nodeValue.replace(/&nbsp;/gi,'dd')+']';
             } else if (prevTmpNode.nodeType == 1) {
-                $tx('tx_article_title').value += 'prevTmpNode.nodeType[11111]';
+                $tx('tx_article_title').value  += 'NODE 1['+_self._wordAssistUtil.tagText(prevTmpNode)+']';
             } else {
                 notResultMessge();
                 return; // 끝내는곳 불러주기.
@@ -364,7 +376,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                     break;
                 case $tx.KEY_RETURN :
                     if($tom.collect(popupDiv,'span.selectWd') !== undefined){
-                        replaceData(_self._wordAssistUtil.spanValue($tom.collect(popupDiv,'span.selectWd')));
+                        replaceData(_self._wordAssistUtil.tagText($tom.collect(popupDiv,'span.selectWd')));
                     }else{
                         closePopupLayer();
                     }
@@ -416,6 +428,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             _self._isWordassist = true;
             toggleKeyDownEvent();
             if(_self._selectedNode.length == 0){
+                notResultMessge();
                 return ;
             }
             var top = _self._assistTop;
@@ -425,7 +438,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             popupDiv.innerHTML = '';
             $tx.addClassName(popupDiv,'loadingbar');
             $tx.show(popupDiv);
-            searchWord();
+//            searchWord();
         }
 
          /**
@@ -485,7 +498,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             try {
                 if (_self._selectedNode.length > 0 && isNormalize) {
                     var nodes = _self._selectedNode[0];
-//                    nodes._sNode.parentNode.normalize();
+                    nodes._sNode.parentNode.normalize();
                 }
             } catch(e) {
             } finally {
@@ -505,11 +518,12 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
             var prevTmpNode = _self._wordAssistUtil.skipWhiteSpace(tmpNode);
             if (prevTmpNode !== null) {
-                selectedTextNode(prevTmpNode);
+                selectedTextNode(tmpNode,prevTmpNode);
                 if (tmpNode.nextSibling !== null && (tmpNode.nextSibling.nodeType == 3 && !tmpNode.nextSibling.length)) {
                     $tom.remove(tmpNode.nextSibling); // div 삭제.
                 }
                 $tom.remove(tmpNode); // div 삭제.
+                return;
                 openPopupLayer();
             }
         }else{
@@ -624,13 +638,13 @@ var wordAssistUtil = function() {
      * span tag의 textvalue 가져오기.
      * @param node
      */
-    this.spanValue = function(node){
+    this.tagText = function(node){
         var returnstr = "";
         var nodes = node.childNodes;
         for(var i = 0; i < nodes.length; i++){
             var cNode = nodes.item(i);
             if ( cNode.nodeType != 8 )
-                    returnstr += cNode.nodeType != 1 ?cNode.nodeValue :new wordAssistUtil().spanValue(cNode);
+                    returnstr += cNode.nodeType != 1 ?cNode.nodeValue :new wordAssistUtil().tagText(cNode);
         }
         return returnstr;
     }
@@ -652,4 +666,42 @@ var wordAssistUtil = function() {
                 $tx.removeClassName($tom.collect(node,'span'),'selectWd');
             }
     }
+
+    /**
+     * assist execute & a link stop.
+     */
+    this.assisExecute = function(ev){
+        Editor.getPlugin("wordassist").execute();
+        $tx.stop(ev);
+    }
+}
+
+function cleanWhitespace(element,tmpNode) {
+    // If no element is provided, do the whole HTML document
+    element = element || document;
+    // Use the first child as a starting point
+    var cur = element.firstChild;
+    // Go until there are no more child nodes
+    var reValue = "";
+    while ( cur != null ) {
+        if(cur === tmpNode){
+            return reValue;
+        }
+        // If the node is a text node, and it contains nothing but whitespace
+        if ( cur.nodeType == 3 && (! /\S/.test(cur.nodeValue) &&  cur.nodeValue.length < 1)) {
+            // Remove the text node
+            var pcur = cur.previousSibling;
+            element.removeChild( cur );
+            if(pcur !== null) cur = pcur;
+        // Otherwise, if it’s an element
+        } else if ( cur.nodeType == 1 ) {
+             // Recurse down through the document
+             reValue += cleanWhitespace( cur,tmpNode);
+        }else{
+            reValue += cur.nodeValue;
+        }
+
+        cur = cur.nextSibling; // Move through the child nodes
+    }
+    return reValue;
 }
