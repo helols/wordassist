@@ -46,11 +46,11 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     _isWordassist : null,
     _canvas : null,
     _tmp : null,
-    _wordAssistUtil : null,
+    _waUtil : null,
     _daumAPIKey : TrexConfig.get('daumAPIKey'),
     _assist_type : 'dic',
     _cache_itemList : [],
-    _history : null,
+//    _history : null,
     _resultTemplate :null,
     _footerTemplate :null,
     initialize: function(editor, _config) {
@@ -60,8 +60,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var _self = this;
         _self._editor = editor;
         _self._canvas = editor.getCanvas();
-        _self._wordAssistUtil = new wordAssistUtil();
-        _self._history = new Trex.History(this, _config);
+        _self._waUtil = new wordAssistUtil();
+//        _self._history = new Trex.History(this, _config);
         this.execute = this.assistExecute;
     },
     /**
@@ -110,6 +110,8 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     assistExecute : function() {
         var _self = this;
         var timeoutID = null;
+        var intervalID = null;
+        var a_search_word = '';
         var popupDiv = $tx('tx_wordassist');
         var lastSelectDiv = null;
         _self._resultTemplate = _self._resultTemplate === null?new Template('<div class="search_result"><span><font color="#eb550c">#{equalsWd}</font>#{modWd}</span><font color="#666666"> : #{desc}</font></div>'):_self._resultTemplate;
@@ -125,7 +127,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             popupDiv.innerHTML =  '<div style="text-align:center;color:#eb550c; padding-bottom: 7px;">'+messge
         }
         var insertItems = function(search_word,list,sType) {
-            if((_self._wordAssistUtil.isEnglish(search_word) !== _self._wordAssistUtil.isEnglish(list[0].word.replace(/\s/g,'')))){ // 공백문제.
+            if((_self._waUtil.isEnglish(search_word) !== _self._waUtil.isEnglish(list[0].word.replace(/\s/g,'')))){ // 공백문제.
                 notResultMessge();
                 return;
             }
@@ -151,13 +153,13 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             var sDivs = $tom.collectAll(popupDiv, "div.search_result");
             sDivs.each(function(sDiv){
                 sDiv.onclick = function(){
-                    replaceData(_self._wordAssistUtil.tagText($tom.collect(sDiv,'span.selectWd')));
+                    replaceData(_self._waUtil.tagText($tom.collect(sDiv,'span.selectWd')));
                 };
                 sDiv.onmouseout = function(){
-                    _self._wordAssistUtil.toggleSelectRow(sDiv,'del');
+                    _self._waUtil.toggleSelectRow(sDiv,'del');
                 };
                 sDiv.onmouseover = function(){
-                    _self._wordAssistUtil.toggleSelectRow(sDiv,'add');
+                    _self._waUtil.toggleSelectRow(sDiv,'add');
                 }
             });
             //            $tom.append(popupDiv)
@@ -165,6 +167,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
         var suggest = function(search_word,sType){
             var resultList = [];
+            $tx('tx_article_title').value = 'google['+search_word+']';
             if(_self._cache_itemList[search_word+'_'+sType] !== undefined){
                 resultList = _self._cache_itemList[search_word+'_'+sType];
                 insertItems(search_word,resultList,sType);
@@ -190,6 +193,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
 
         var dictionary = function(search_word,dicType){
             var resultList = [];
+            $tx('tx_article_title').value = 'daum['+search_word+']';
             if(_self._cache_itemList[search_word+'_'+dicType] !== undefined){
                 resultList = _self._cache_itemList[search_word+'_'+dicType];
                 insertItems(search_word,resultList,dicType);
@@ -220,20 +224,24 @@ Trex.Plugin.WordAssist = Trex.Class.create({
          */
         var searchWord = function() {
             var nodes = _self._selectedNode[0];
-            var search_word = nodes._sNode.nodeValue;
-            if(search_word.length < 1){
+            var search_word = nodes._sNode || '';
+                search_word = search_word !== ''?search_word.nodeValue.replace(/\ufeff/g, ""):'';
+            if( search_word.length < 1){
                 closePopupLayer();
             }
+            if(a_search_word === search_word) return;
+            a_search_word = search_word;
             if(_self._assist_type == 'suggest'){
                 suggest(search_word,'suggest');
             }
             else {
                 var dicType = '';
-                if(_self._wordAssistUtil.isEnglish(search_word)){
+                if(_self._waUtil.isEnglish(search_word)){
                     dicType = 'endic';
-                }else if(_self._wordAssistUtil.isHangul(search_word)){
+                }else if(_self._waUtil.isHangul(search_word)){
                     dicType = 'krdic';
                 }else{
+                    console.log('['+search_word+']');
                     notResultMessge();
                     return ;//노 dic...
                 }
@@ -295,52 +303,55 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         /**
          * 선택되어야 하는 TextNode 정하기.
          */
-        var selectedTextNode = function(tmpNode,prevTmpNode) {
-//            var childNodes = tmpNode.parentNode.childNodes;
-//            var values = "";
-//            childNodes.each(function(node){
-//                if(node.nodeType == 3){
-//
-//                }
-//            });
-             $tx('tx_article_title').value = '['+tmpNode.parentNode.nodeName+']/['+cleanWhitespace(tmpNode.parentNode,tmpNode)+']';
-            tmpNode.previousSibling.nodeValue=tmpNode.previousSibling.nodeValue.replace(/\S?/,'111');
-            return;
-            if (prevTmpNode.nodeType == 3) { //textNode 일때.
-                $tx('tx_article_title').value  += 'NODE 3['+_self._wordAssistUtil.tagText(prevTmpNode)+']';
-                return;
-                if(!$tx.msie){ //IE만 초기에 .. 공백을 만들어버리는 현상을 보인다.
-                    prevTmpNode.parentNode.normalize();
-                }
-                $tx('tx_article_title').value += _self.isPassableNode(prevTmpNode.nodeValue);
-                if(!_self.isPassableNode(prevTmpNode.nodeValue)){                    
-                    return ;
-                };
-                var offset = _self._wordAssistUtil.changeToSpace(prevTmpNode.nodeValue).lastIndexOf(' '); // 0 면 앞 노드 까지 검색하기 ?
-                var _sNode = $tom.divideText(prevTmpNode, offset);
-                _self._selectedNode.push({_sNode:_sNode,offset:offset,_pNode:_sNode.previousSibling});
-                $tx('tx_article_title').value += '_sNode[' + _sNode.nodeValue+ '/'+offset+'//'+_sNode.nodeValue.replace(/&nbsp;/gi,'dd')+']';
-            } else if (prevTmpNode.nodeType == 1) {
-                $tx('tx_article_title').value  += 'NODE 1['+_self._wordAssistUtil.tagText(prevTmpNode)+']';
-            } else {
-                notResultMessge();
-                return; // 끝내는곳 불러주기.
+        var selectedTextNode = function(prevTmpNode) {
+            if(prevTmpNode.nodeType == 1){
+                console.log('nodeType 1');
+                $tx('tx_article_title').value += 'nodeType 1';
+                prevTmpNode = _self._waUtil.findLastTextNode(prevTmpNode);
+                console.log(prevTmpNode);
+            }else if(prevTmpNode.nodeType == 3){
+                console.log('nodeType 3 ');
+                $tx('tx_article_title').value += 'nodeType 3';
+                console.log(prevTmpNode);
             }
+
+            if (prevTmpNode !== null) { //textNode 일때.
+//                if(!$tx.msie){ //IE만 초기에 .. 공백을 만들어버리는 현상을 보인다.
+//                    prevTmpNode.parentNode.normalize();
+//                }
+                $tx('tx_article_title').value += 'pNode.nodeValue['+prevTmpNode.nodeValue+']passble ['+_self._waUtil.isPassableNode(prevTmpNode.nodeValue)+']';
+                if(_self._waUtil.isPassableNode(prevTmpNode.nodeValue)){
+                    var offset = _self._waUtil.changeToSpace(prevTmpNode.nodeValue).lastIndexOf(' ')+1; // 0 면 앞 노드 까지 검색하기 ?
+                    var _sNode = $tom.divideText(prevTmpNode, offset);
+                    _self._selectedNode.push({_sNode:_sNode,offset:offset,_pNode:_sNode.previousSibling});
+                    $tx('tx_article_title').value += '_sNode[' + _sNode.nodeValue+ '/'+(offset)+']';
+                    return;;
+                }
+            }
+            notResultMessge();
+            return;
         };
 
+        /**
+         * ff 한글문제.
+         */
+        var clearIntrvalFF = function(){
+            if(intervalID !== null) clearInterval(intervalID);
+        };
         /**
          * popup Layer control 하기 위한 keyEvent!!
          * 상하 이벤트 / 엔터이벤트(결정이벤트)/  좌우 이벤트시 닫기... etc...
          * @param ev
          */
         var pupupOpenAfterKeyDownEvent = function(ev) {
-            if(ev.keyCode == Trex.__KEY.SPACE && ev.ctrlKey){
+           clearIntrvalFF();
+            if((ev.keyCode == 32) && ev.ctrlKey){
                 return;
             }else if((ev.ctrlKey && ev.keyCode == Trex.__KEY.CUT) ||
                      (ev.ctrlKey && ev.keyCode == Trex.__KEY.PASTE)||
                      (ev.ctrlKey && ev.keyCode == 90) || //undo
                      (ev.ctrlKey && ev.keyCode == 89) || //redo
-                     ev.altKey || ev.shiftKey){
+                     ev.altKey){
                         closePopupLayer();
                         $tx.stop(ev);
                         return;
@@ -350,33 +361,33 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             switch (ev.keyCode) {
                 case $tx.KEY_DOWN :
                     if($tom.collect(popupDiv,'div.select_over') === undefined){
-                        _self._wordAssistUtil.toggleSelectRow(popupDiv.firstChild,'add');
+                        _self._waUtil.toggleSelectRow(popupDiv.firstChild,'add');
                     }else{
                         var seldiv = $tom.collect(popupDiv,'div.select_over');
                         if(seldiv.nextSibling !== null && seldiv.nextSibling !== $tom.collect(popupDiv,'#tx_wordassist_footer')){
-                            _self._wordAssistUtil.toggleSelectRow(seldiv.nextSibling,'add');
+                            _self._waUtil.toggleSelectRow(seldiv.nextSibling,'add');
                         }else{
-                            _self._wordAssistUtil.toggleSelectRow(popupDiv.firstChild,'add');
+                            _self._waUtil.toggleSelectRow(popupDiv.firstChild,'add');
                         }
                     }
                     $tx.stop(ev);
                     break;
                 case $tx.KEY_UP :
                     if($tom.collect(popupDiv,'div.select_over') === undefined){
-                        _self._wordAssistUtil.toggleSelectRow(popupDiv.lastChild.previousSibling,'add');
+                        _self._waUtil.toggleSelectRow(popupDiv.lastChild.previousSibling,'add');
                     }else{
                         var seldiv = $tom.collect(popupDiv,'div.select_over');
                         if(seldiv.previousSibling !== null && seldiv.previousSibling !== $tom.collect(popupDiv,'#tx_wordassist_footer')){
-                            _self._wordAssistUtil.toggleSelectRow(seldiv.previousSibling,'add');
+                            _self._waUtil.toggleSelectRow(seldiv.previousSibling,'add');
                         }else{
-                            _self._wordAssistUtil.toggleSelectRow(popupDiv.lastChild.previousSibling,'add');
+                            _self._waUtil.toggleSelectRow(popupDiv.lastChild.previousSibling,'add');
                         }
                     }
                     $tx.stop(ev);
                     break;
                 case $tx.KEY_RETURN :
                     if($tom.collect(popupDiv,'span.selectWd') !== undefined){
-                        replaceData(_self._wordAssistUtil.tagText($tom.collect(popupDiv,'span.selectWd')));
+                        replaceData(_self._waUtil.tagText($tom.collect(popupDiv,'span.selectWd')));
                     }else{
                         closePopupLayer();
                     }
@@ -385,15 +396,26 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 case $tx.KEY_LEFT : case $tx.KEY_RIGHT : case $tx.KEY_ESC:
                 case $tx.KEY_DELETE : case $tx.KEY_HOME: case $tx.KEY_END:
                 case $tx.KEY_PAGEDOWN : case $tx.KEY_PAGEUP: case $tx.KEY_TAB:
-                case Trex.__KEY.SPACE: case Trex.__KEY.CUT: case Trex.__KEY.PASTE:
+                case 32:
                     closePopupLayer();
                     break;// 닫기
+                case 229:
+                    if($tx.gecko){
+                        if(intervalID == null){
+                            intervalID = setInterval(searchWord,300);
+                        }else{
+                            clearIntrvalFF();
+                            intervalID = setInterval(searchWord,300);
+                        }
+                    }
+                    $tx.stop(ev);
+                    break;
                 default :                        
                     if(timeoutID == null){
-                        timeoutID = setTimeout(searchWord,100);
+                        timeoutID = setTimeout(searchWord,300);
                     }else{
                         clearTimeout(timeoutID);
-                        timeoutID = setTimeout(searchWord,100);
+                        timeoutID = setTimeout(searchWord,300);
                     }
             }
         };
@@ -438,18 +460,20 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             popupDiv.innerHTML = '';
             $tx.addClassName(popupDiv,'loadingbar');
             $tx.show(popupDiv);
-//            searchWord();
+            searchWord();
         }
 
          /**
          * pop 닫기.
          */
         var closePopupLayer = function(isNormalize) {
+            if(intervalID !== null) clearInterval(intervalID);
             var normalize = isNormalize || true;
             _self._isWordassist = false;
             toggleKeyDownEvent(true);
             popupDiv.innerHTML = '';
             $tx.hide(popupDiv);
+            $tx('tx_article_title').value ='';
             closeAfterCallback(normalize);
         }
 
@@ -470,7 +494,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                     var _pNode = nodes._pNode;
                     var _sNode = nodes._sNode;
                     var _tNode = _self.getCurrentDoc().createTextNode(str);
-                    if (_pNode !== undefined && _pNode !== null) { // 단독 node가 아닐경우.. 차일드 삭제.
+                    if (_pNode !== null) { // 단독 node가 아닐경우.. 차일드 삭제.
                         $tx('tx_article_title').value += '_pNode defined ';
                         $tom.insertNext(_tNode, _pNode);
                     } else {
@@ -516,14 +540,13 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             }
             calTmpSpanPosition(tmpNode); //좌표 계산.폰트 사이즈 만큼 내려주기.
 
-            var prevTmpNode = _self._wordAssistUtil.skipWhiteSpace(tmpNode);
+            var prevTmpNode = _self._waUtil.skipWhiteSpace(tmpNode);
             if (prevTmpNode !== null) {
-                selectedTextNode(tmpNode,prevTmpNode);
-                if (tmpNode.nextSibling !== null && (tmpNode.nextSibling.nodeType == 3 && !tmpNode.nextSibling.length)) {
+                selectedTextNode(prevTmpNode);
+                if (tmpNode.nextSibling !== null && (tmpNode.nextSibling.nodeType == 3 &&  ! /\S/.test(tmpNode.nextSibling.nodeValue) &&  tmpNode.nextSibling.nodeValue.length < 1)) {
                     $tom.remove(tmpNode.nextSibling); // div 삭제.
                 }
                 $tom.remove(tmpNode); // div 삭제.
-                return;
                 openPopupLayer();
             }
         }else{
@@ -550,9 +573,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
      * refactoring...
      * @param str
      */
-    isPassableNode : function(str) {
-        return (str.trim().length != 0 && this._wordAssistUtil.changeToSpace(str).lastIndexOf(" ") + 1 !== str.length)
-    },
+
 
     /**
      * common toggleEvent . jobObservers push & remove!!
@@ -598,7 +619,6 @@ var wordAssistUtil = function() {
      */
     this.isEnglish = function(str) {
         var chk_eng = str.match(/[a-z]/ig);
-
         if (chk_eng !== null && str.length === chk_eng.length) {
             return true;
         } else {
@@ -610,7 +630,8 @@ var wordAssistUtil = function() {
      * 공백 -> space 로 변경.
      */
     this.changeToSpace = function(str) {
-        return str.replace(/\s/g, ' ');
+        console.log('['+str+']');
+        return str.replace(/\s+/, ' ');
     }
     /**
      * whiteSpace skip 후 node 반환.
@@ -620,7 +641,7 @@ var wordAssistUtil = function() {
         if ($tx.msie) return node.previousSibling; //IE 일경우
         var cur = node.previousSibling;
         if (cur !== undefined && cur !== null) {
-            if (cur.nodeType == 3 && !cur.length) {
+            if (cur.nodeType == 3 && (! /\S/.test(cur.nodeValue) &&  cur.nodeValue.length < 1)) {
                 return this.skipWhiteSpace(cur);
             } else {
                 return cur;
@@ -644,7 +665,7 @@ var wordAssistUtil = function() {
         for(var i = 0; i < nodes.length; i++){
             var cNode = nodes.item(i);
             if ( cNode.nodeType != 8 )
-                    returnstr += cNode.nodeType != 1 ?cNode.nodeValue :new wordAssistUtil().tagText(cNode);
+                    returnstr += cNode.nodeType != 1 ?cNode.nodeValue :this.tagText(cNode);
         }
         return returnstr;
     }
@@ -657,7 +678,7 @@ var wordAssistUtil = function() {
             if(type == 'add'){
                 var seldiv = $tom.collect($tx('tx_wordassist'),'div.select_over');
                 if(seldiv !== undefined){
-                    new wordAssistUtil().toggleSelectRow(seldiv,'del');
+                    this.toggleSelectRow(seldiv,'del');
                 }
                 $tx.addClassName(node,'select_over');
                 $tx.addClassName($tom.collect(node,'span'),'selectWd');
@@ -671,8 +692,28 @@ var wordAssistUtil = function() {
      * assist execute & a link stop.
      */
     this.assisExecute = function(ev){
+        alert('dd')
         Editor.getPlugin("wordassist").execute();
         $tx.stop(ev);
+    }
+
+    this.findLastTextNode = function(node){
+        if(node === null || node.nodeName.toUpperCase() == 'BODY') return null;
+        var lastTextNode = null;
+        var nodes = node.childNodes;
+        for(var i = 0; i < nodes.length; i++){
+            var cNode = nodes.item(i);
+            if (cNode.nodeType == 3 && !(! /\S/.test(cNode.nodeValue) &&  cNode.nodeValue.length < 1)) {
+                lastTextNode = cNode;
+            }else if(cNode.nodeType == 1){
+                lastTextNode = this.findLastTextNode(cNode);
+            }
+        }
+        return lastTextNode;
+    }
+
+    this.isPassableNode = function(str) {
+        return (str.trim().length != 0 || this.changeToSpace(str).lastIndexOf(" ") + 1 !== str.length);
     }
 }
 
@@ -705,3 +746,5 @@ function cleanWhitespace(element,tmpNode) {
     }
     return reValue;
 }
+
+
