@@ -120,7 +120,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             $tx.removeClassName(popupDiv,'loadingbar');
             var messge = _self._assist_type =='suggest'? 'No suggestions!!!':'No search in dictionary!!!';
             messge += '</div>'+_self._footerTemplate.evaluate({mode:_self._assist_type==='suggest'?'서제스트':'Daum 사전'});
-            popupDiv.innerHTML =  '<div style="text-align:center;color:#eb550c; padding-bottom: 7px;">'+messge
+            popupDiv.innerHTML =  '<div class="nosearch_result">'+messge
         }
         var insertItems = function(search_word,list,sType) {
             if((_self._waUtil.isEnglish(search_word) !== _self._waUtil.isEnglish(list[0].word.replace(/\s/g,'')))){ // 공백문제.
@@ -670,6 +670,7 @@ var wordAssistUtil = function() {
      * @param type
      */
     this.toggleSelectRow = function(node,type){
+        if($tom.collect($tx('tx_wordassist'),'div.nosearch_result') === undefined){
             if(type == 'add'){
                 var seldiv = $tom.collect($tx('tx_wordassist'),'div.select_over');
                 if(seldiv !== undefined){
@@ -681,13 +682,13 @@ var wordAssistUtil = function() {
                 $tx.removeClassName(node,'select_over');
                 $tx.removeClassName($tom.collect(node,'span'),'selectWd');
             }
+        }
     }
 
     /**
      * assist execute & a link stop.
      */
     this.assisExecute = function(ev){
-        alert('dd')
         Editor.getPlugin("wordassist").execute();
         $tx.stop(ev);
     }

@@ -379,9 +379,9 @@
 
     ############# Wordassist #############
     #macro(wordassist $initializedId)
-	<!-- wordassist Start -->
-	<div id="tx_wordassist$!initializedId" style="display:none;width:0px;height:0px;">
-	</div>
+    <!-- wordassist Start -->
+    <div id="tx_wordassist" style="display:none;">
+    </div>
 	#end
 	
 	############# File Attach #############
