@@ -71,7 +71,6 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         var isClearTimer = true;
         _url = _url.replace(/=\?(&|$)/g, "=" + jsonp + "$1");
 
-        //jquery 참조.
         window[ jsonp ] = function(tmp){
                 data = tmp;
                 success();
@@ -94,6 +93,10 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             callback('success',data);
         }
 
+        /**
+         * window function GC
+         * @param _isClearTimer
+         */
         var jsonpGC = function(_isClearTimer){
             if(_isClearTimer)
                 clearTimeout(timeoutID);
@@ -103,6 +106,9 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 head.removeChild( script );
         }
     },
+    /**
+     * assist 실행.
+     */
     assistExecute : function() {
         var _self = this;
         var timeoutID = null;
@@ -113,15 +119,30 @@ Trex.Plugin.WordAssist = Trex.Class.create({
         _self._resultTemplate = _self._resultTemplate === null?new Template('<div class="search_result"><span>#{word}</span><font color="#666666"> : #{desc}</font></div>'):_self._resultTemplate;
         _self._footerTemplate = _self._footerTemplate === null?new Template('<div id="tx_wordassist_footer">#{mode} 검색결과 | <a href="" onclick="new wordAssistUtil().assisExecute(event)">change(ctrl+space or click)</a> </div>'):_self._footerTemplate;
         ///////////////////////////////////// down : function area start /////////////////////////////////////
+
+        /**
+         * ctrl + space toogle
+         */
         var toggleAssistType = function(){
             _self._assist_type = _self._assist_type === 'dic'?'suggest':'dic';
         }
+
+        /**
+         * 결과 없음 메세지.
+         */
         var notResultMessge = function(){
             $tx.removeClassName(popupDiv,'loadingbar');
             var messge = _self._assist_type =='suggest'? 'No suggestions!!!':'No search in dictionary!!!';
             messge += '</div>'+_self._footerTemplate.evaluate({mode:_self._assist_type==='suggest'?'서제스트':'Daum 사전'});
-            popupDiv.innerHTML =  '<div class="nosearch_result">'+messge
+            popupDiv.innerHTML =  '<div class="nosearch_result">'+messge ;
         }
+
+        /**
+         * 검색결과를 popup div 데이터 생성.
+         * @param search_word
+         * @param list
+         * @param sType
+         */
         var insertItems = function(search_word,list,sType) {
             if((_self._waUtil.isEnglish(search_word) !== _self._waUtil.isEnglish(list[0].word.replace(/\s/g,'')))){ // 공백문제.
                 notResultMessge();
@@ -134,7 +155,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 var _item = {
                     word : item.word.replace(search_word,'<font color="#eb550c">'+search_word+'</font>'),
                     desc  : item.desc
-                }
+                };
                 html.push(_self._resultTemplate.evaluate(_item));
             });
             if(_self._cache_itemList[search_word+'_'+sType] === undefined ){
@@ -153,10 +174,15 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                 };
                 sDiv.onmouseover = function(){
                     _self._waUtil.toggleSelectRow(sDiv,'add');
-                }
+                };
             });
         }
 
+        /**
+         *  google suggest searche
+         * @param search_word
+         * @param sType
+         */
         var suggest = function(search_word,sType){
             var resultList = [];
             if(_self._cache_itemList[search_word+'_'+sType] !== undefined){
@@ -182,6 +208,11 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             }
         }
 
+        /**
+         * daume dictionary search
+         * @param search_word
+         * @param dicType
+         */
         var dictionary = function(search_word,dicType){
             var resultList = [];
             if(_self._cache_itemList[search_word+'_'+dicType] !== undefined){
@@ -303,7 +334,20 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             if (prevTmpNode !== null) { //textNode 일때.
                 if(_self._waUtil.isPassableNode(prevTmpNode.nodeValue)){
                     var offset = _self._waUtil.changeToSpace(prevTmpNode.nodeValue).lastIndexOf(' ')+1;
-                    var _sNode = $tom.divideText(prevTmpNode, offset);
+                    var _sNode = null;
+                    if(!$tx.webkit){
+                        _sNode = $tom.divideText(prevTmpNode, offset);
+
+                    }else{ // 미해결.. webkit 문제 있음.
+                        if(offset <= 0 || offset >= prevTmpNode.length) {
+                            _sNode = prevTmpNode;
+                        }else{
+                            var _newNode = document.createTextNode(prevTmpNode.nodeValue.substr(offset));
+                            prevTmpNode.nodeValue = prevTmpNode.nodeValue.substring(0,offset);
+                            prevTmpNode.parentNode.insertBefore(_newNode, prevTmpNode.nextSibling);
+                            _sNode = _newNode;
+                        }
+                    }
                     moveFocusToTextEnd(_sNode);
                     _self._selectedNode.push({_sNode:_sNode,_pNode:_sNode.previousSibling});
                     return;
@@ -449,7 +493,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             $tx.addClassName(popupDiv,'loadingbar');
             $tx.show(popupDiv);
             searchWord();
-        }
+        };
 
          /**
          * pop 닫기.
@@ -464,17 +508,23 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             popupDiv.innerHTML = '';
             $tx.hide(popupDiv);
             closeAfterCallback(normalize);
-        }
+        };
 
         /**
          * 포커스 이동시켜주기.
          * @param node
          */
         var moveFocusToTextEnd = function(node) {
-            if ($tx.msie) return;
-            var _rng = _self.getCurrentProcessor().getRange();
-            _rng.setEnd(node, node.length);
-            _rng.collapse(false);
+            if (!$tx.msie){
+                var _rng = _self.getCurrentProcessor().getRange();
+                if($tx.webkit){ /// 문제 있음. 미해결.
+                    _rng.setStart(node, 0);
+                    _rng.setEnd(node, node.length);
+                }else{
+                    _rng.setEnd(node, node.length);
+                    _rng.collapse(false);
+                }
+            }
         };
 
         /**
@@ -494,7 +544,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
                     }
                     $tom.remove(_sNode);
                     moveFocusToTextEnd(_tNode);
-                    _tNode.parentNode.normalize();
+                    _tNode.parentNode.normalize();  //webkit 에선... foucs가 튀는 문제가 있음.
                 }
             } catch(e) {
             } finally {
@@ -519,13 +569,15 @@ Trex.Plugin.WordAssist = Trex.Class.create({
             } catch(e) {
             } finally {
                 _self._selectedNode = [];
+                if($tx.webkit){  //문제있음. webkit focus 문제.
+                    setTimeout(function(){Editor.focus();},1000);
+                }
             }
         };
 
         ///////////////////////////////////// up : function area end///// donw : logic start /////////////////////////////////////
         toggleAssistType();
         if(!_self._isWordassist){
-//            $tx('tx_article_title').value ='';
             var tmpNode = addTmpSpan(); // 임시 span 삽입
             if (tmpNode === null) {
                 $tom.remove(tmpNode); // 일단.. 삭제
@@ -561,13 +613,7 @@ Trex.Plugin.WordAssist = Trex.Class.create({
     getCurrentDoc: function() {
         return this.getCurrentProcessor().doc;
     },
-    /**
-     * 공백으로 시작 하거나 whiteSpace node 일경우 체크람. ( 둘다 아닌경우에만 통과함.)
-     * refactoring...
-     * @param str
-     */
-
-
+ 
     /**
      * common toggleEvent . jobObservers push & remove!!
      * 불필요한 이벤트를 방지하기 위한.!
@@ -627,7 +673,7 @@ var wordAssistUtil = function() {
             return str.replace(/\s+/, ' ');
         }
         return str.replace(/\u00A0/, ' ');
-    }
+    };
     /**
      * whiteSpace skip 후 node 반환.
      * @param node
@@ -683,7 +729,7 @@ var wordAssistUtil = function() {
                 $tx.removeClassName($tom.collect(node,'span'),'selectWd');
             }
         }
-    }
+    };
 
     /**
      * assist execute & a link stop.
@@ -691,7 +737,7 @@ var wordAssistUtil = function() {
     this.assisExecute = function(ev){
         Editor.getPlugin("wordassist").execute();
         $tx.stop(ev);
-    }
+    };
 
     this.findLastTextNode = function(node){
         if(node === null || node.nodeName.toUpperCase() == 'BODY') return null;
@@ -706,9 +752,13 @@ var wordAssistUtil = function() {
             }
         }
         return lastTextNode;
-    }
+    };
 
+    /**
+     * assist가 가능한 node 인지 판단한다.
+     * @param str
+     */
     this.isPassableNode = function(str) {
         return (str.trim().length != 0 && this.changeToSpace(str).lastIndexOf(" ") + 1 !== str.length);
-    }
+    };
 }
